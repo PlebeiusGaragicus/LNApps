@@ -1,4 +1,5 @@
 import os
+import platform
 import json
 import logging
 logger = logging.getLogger()
@@ -32,43 +33,46 @@ class App(Singleton):
     def configure_instance(cls):
         if cls._instance:
             raise Exception("Instance already configured")
-        application = cls.__new__(cls)
-        cls._instance = application
+        app = cls.__new__(cls)
+        cls._instance = app
 
         setup_logging()
 
         # load manifest
         manifest_path = os.path.join( os.path.dirname(os.path.abspath(__file__)), 'manifest.json' )
         with open( manifest_path ) as f:
-            application.manifest = json.load(f)
+            app.manifest = json.load(f)
 
-        #### setup application variables! ####
+        #### setup app variables! ####
         pygame.init()
-        application.width, application.height = pygame.display.Info().current_w, pygame.display.Info().current_h
-        application.screen = pygame.display.set_mode(flags=pygame.FULLSCREEN)
+        app.width, app.height = pygame.display.Info().current_w, pygame.display.Info().current_h
+        if platform.system() == "Darwin":
+            app.screen = pygame.display.set_mode((app.width, app.height), flags=pygame.NOFRAME)
+        else:
+            app.screen = pygame.display.set_mode(flags=pygame.FULLSCREEN | pygame.NOFRAME)
 
-        logger.debug("Display size: %s x %s", application.width, application.height)
+        logger.debug("Display size: %s x %s", app.width, app.height)
 
         global APP_SCREEN
-        APP_SCREEN = application.screen
+        APP_SCREEN = app.screen
         global SCREEN_WIDTH
-        SCREEN_WIDTH = application.width
+        SCREEN_WIDTH = app.width
         global SCREEN_HEIGHT
-        SCREEN_HEIGHT = application.height
+        SCREEN_HEIGHT = app.height
 
         pygame.display.set_caption("Snake Game")
-        application.clock = pygame.time.Clock()
-        application.manager = ViewStateManager()
+        app.clock = pygame.time.Clock()
+        app.manager = ViewStateManager()
 
         from grubvsnek.views.mainmenu import MainMenu
         from grubvsnek.views.gameplay import Gameplay
         from grubvsnek.views.gameover import GameOver
-        application.manager.add_state("main_menu", MainMenu())
-        application.manager.add_state("gameplay", Gameplay())
-        application.manager.add_state("game_over", GameOver())
+        app.manager.add_state("main_menu", MainMenu())
+        app.manager.add_state("gameplay", Gameplay())
+        app.manager.add_state("game_over", GameOver())
 
-        application.window_title = application.manifest['name']
-        logger.debug("manifest: %s", application.manifest)
+        app.window_title = app.manifest['name']
+        logger.debug("manifest: %s", app.manifest)
 
 
         # TODO - consider making all windows resizable in order to test layout for multiple monitors
