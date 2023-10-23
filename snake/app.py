@@ -10,11 +10,15 @@ from gamelib.logger import setup_logging
 from gamelib.singleton import Singleton
 from gamelib.viewstate import ViewStateManager
 
-from grubvsnek.config import *
+from snake.config import *
 
+MY_DIR = os.path.dirname(os.path.abspath(__file__))
 APP_SCREEN: pygame.Surface = None
 SCREEN_HEIGHT = None
 SCREEN_WIDTH = None
+FPS = 10
+
+
 
 
 class App(Singleton):
@@ -38,20 +42,24 @@ class App(Singleton):
 
         setup_logging()
 
-        # load manifest
-        manifest_path = os.path.join( os.path.dirname(os.path.abspath(__file__)), 'manifest.json' )
+        #### load manifest
+        manifest_path = os.path.join( MY_DIR, 'manifest.json' )
         with open( manifest_path ) as f:
             app.manifest = json.load(f)
+        logger.debug("manifest: %s", app.manifest)
 
-        #### setup app variables! ####
+        #### setup app variables
         pygame.init()
-        app.width, app.height = pygame.display.Info().current_w, pygame.display.Info().current_h
+        pygame.font.init() # really needed?
+        _info = pygame.display.Info()
+        app.width, app.height = _info.current_w, _info.current_h
+        logger.debug("Display size: %s x %s", app.width, app.height)
+
         if platform.system() == "Darwin":
             app.screen = pygame.display.set_mode((app.width, app.height), flags=pygame.NOFRAME)
         else:
             app.screen = pygame.display.set_mode(flags=pygame.FULLSCREEN | pygame.NOFRAME)
 
-        logger.debug("Display size: %s x %s", app.width, app.height)
 
         global APP_SCREEN
         APP_SCREEN = app.screen
@@ -60,20 +68,16 @@ class App(Singleton):
         global SCREEN_HEIGHT
         SCREEN_HEIGHT = app.height
 
-        pygame.display.set_caption("Snake Game")
+        pygame.display.set_caption( app.manifest['name'] )
         app.clock = pygame.time.Clock()
-        app.manager = ViewStateManager()
+        app.viewmanager = ViewStateManager()
 
-        from grubvsnek.views.mainmenu import MainMenu
-        from grubvsnek.views.gameplay import Gameplay
-        from grubvsnek.views.gameover import GameOver
-        app.manager.add_state("main_menu", MainMenu())
-        app.manager.add_state("gameplay", Gameplay())
-        app.manager.add_state("game_over", GameOver())
-
-        app.window_title = app.manifest['name']
-        logger.debug("manifest: %s", app.manifest)
-
+        from snake.views.mainmenu import MainMenuView
+        from snake.views.gameplay import GameplayView
+        from snake.views.gameover import GameOverView
+        app.viewmanager.add_view("main_menu", MainMenuView())
+        app.viewmanager.add_view("gameplay", GameplayView())
+        app.viewmanager.add_view("game_over", GameOverView())
 
         # TODO - consider making all windows resizable in order to test layout for multiple monitors
         # game.window.set_mouse_visible(False)
@@ -82,7 +86,9 @@ class App(Singleton):
 
 
     def start(self):
-        self.manager.change_state("main_menu")
+        logger.debug("App.start()")
+
+        selfviewmanager.run_view("main_menu")
 
         running = True
         try:
@@ -92,10 +98,10 @@ class App(Singleton):
                         running = False
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                         running = False
-                    self.manager.handle_event(event)
+                    selfviewmanager.handle_event(event)
 
-                self.manager.update()
-                self.manager.draw()
+                selfviewmanager.update()
+                selfviewmanager.draw()
 
                 pygame.display.flip()
                 self.clock.tick(FPS)

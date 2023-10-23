@@ -2,12 +2,14 @@ import random
 
 import pygame
 
-from grubvsnek.app import App, APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
+from gamelib.colors import Colors
 from gamelib.viewstate import ViewState
-from grubvsnek.config import *
+
+from snake.app import App, APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
+from snake.config import *
 
 
-class Gameplay(ViewState):
+class GameplayView(ViewState):
     def __init__(self):
         super().__init__()
         # TODO: I'm not sure how to do this best...
@@ -44,8 +46,8 @@ class Gameplay(ViewState):
         new_head = ((head_x + new_x) % (SCREEN_WIDTH // CELL_SIZE), (head_y + new_y) % (SCREEN_HEIGHT // CELL_SIZE))
 
         if new_head in self.snake:
-            # manager.change_state("game_over")
-            App.get_instance().manager.change_state("game_over")
+            # manager.run_view("game_over")
+            App.get_instance().viewmanager.run_view("game_over")
             return
 
         self.snake.insert(0, new_head)
@@ -60,7 +62,7 @@ class Gameplay(ViewState):
                          random.randint(0, (SCREEN_HEIGHT // CELL_SIZE) - 1))
 
     def draw(self):
-        APP_SCREEN.fill(BLACK)
+        APP_SCREEN.fill(Colors.DARK)
         for segment in self.snake:
-            pygame.draw.rect(APP_SCREEN, GREEN, (segment[0]*CELL_SIZE, segment[1]*CELL_SIZE, CELL_SIZE, CELL_SIZE))
-        pygame.draw.rect(APP_SCREEN, RED, (self.food[0]*CELL_SIZE, self.food[1]*CELL_SIZE, CELL_SIZE, CELL_SIZE))
+            pygame.draw.rect(APP_SCREEN, Colors.GREEN, (segment[0]*CELL_SIZE, segment[1]*CELL_SIZE, CELL_SIZE, CELL_SIZE))
+        pygame.draw.rect(APP_SCREEN, Colors.RED, (self.food[0]*CELL_SIZE, self.food[1]*CELL_SIZE, CELL_SIZE, CELL_SIZE))

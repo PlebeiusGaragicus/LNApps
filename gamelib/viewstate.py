@@ -1,4 +1,4 @@
-class ViewState:
+class View:
     def __init__(self):
         pass
 
@@ -16,15 +16,15 @@ class ViewState:
 
 
 
-class ViewStateManager:
+class ViewManager:
     def __init__(self):
         self.states = {}
-        self.current_state: ViewState = None
+        self.current_state: View = None
 
-    def add_state(self, name, state):
+    def add_view(self, name, state):
         self.states[name] = state
 
-    def change_state(self, name):
+    def run_view(self, name):
         self.current_state = self.states[name]
         self.states[name].setup()
 

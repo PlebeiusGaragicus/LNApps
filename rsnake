@@ -2,5 +2,5 @@
 
 source venv/bin/activate
 
-python3 -m grubvsnek
+python3 -m snake
 # exec python3 -m grubvsnek

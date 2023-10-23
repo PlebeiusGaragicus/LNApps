@@ -1,0 +1,8 @@
+#!/bin/bash
+
+source venv/bin/activate
+
+export DEBUG=true
+
+python3 -m grub
+# exec python3 -m grubvsnek
