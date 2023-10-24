@@ -6,13 +6,16 @@ from icecream import ic
 import pygame
 import random
 
+# from gamelib.globals import *
+from gamelib.globals import APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
 from gamelib.colors import Colors, arcade_colors
 from gamelib.viewstate import View
 from gamelib.menuaction import MenuAction
 
-from grub.app import App, APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
+# from grub.app import App, APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
+from grub.app import App
 from grub.config import *
-    
+
 
 
 class MainMenuView(View):
@@ -34,9 +37,8 @@ class MainMenuView(View):
         self.font_sm = pygame.font.SysFont('Arial', 54)
 
         self.text = self.font_bg.render('Snake Game', True, Colors.WHITE)
-        global SCREEN_WIDTH, SCREEN_HEIGHT
-        ic (SCREEN_WIDTH, SCREEN_HEIGHT)
-        self.text_rect = ic( self.text.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2 - 50)) )
+        # global SCREEN_WIDTH, SCREEN_HEIGHT
+        self.text_rect = self.text.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2 - 50))
         self.start_text = self.font_bg.render('Press Space to Start', True, Colors.WHITE)
         self.start_text_rect = self.start_text.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + 50))
 
@@ -46,7 +48,8 @@ class MainMenuView(View):
 
 
     def setup(self):
-        print(f"{self.__class__.__name__} setup")
+        # print(f"{self.__class__.__name__} setup")
+        pass
 
 
     def update(self):
@@ -75,12 +78,8 @@ class MainMenuView(View):
 
             elif event.key == pygame.K_RETURN:
                 logger.info("enter")
-                # self.menu_action[self.menu_selected_item].action()
                 self.menu_action[self.menu_selected_item].execute()
 
-            # elif event.key == pygame.K_BACKSPACE:
-            #     logger.info("escape")
-            #     exit(0)
 
 
     def draw(self):

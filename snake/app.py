@@ -24,6 +24,7 @@ FPS = 10
 class App(Singleton):
     manifest: dict = None
     manager: ViewStateManager = None
+    running: bool = None
 
 
     @classmethod
@@ -51,8 +52,13 @@ class App(Singleton):
         #### setup app variables
         pygame.init()
         pygame.font.init() # really needed?
+        app.clock = pygame.time.Clock()
+
         _info = pygame.display.Info()
         app.width, app.height = _info.current_w, _info.current_h
+        if platform.system() == "Darwin":
+            app.height -= 34 # TODO - this is a hack for the macbook air menu bar / camera cutout
+
         logger.debug("Display size: %s x %s", app.width, app.height)
 
         if platform.system() == "Darwin":
@@ -69,7 +75,7 @@ class App(Singleton):
         SCREEN_HEIGHT = app.height
 
         pygame.display.set_caption( app.manifest['name'] )
-        app.clock = pygame.time.Clock()
+
         app.viewmanager = ViewStateManager()
 
         from snake.views.mainmenu import MainMenuView
@@ -88,20 +94,20 @@ class App(Singleton):
     def start(self):
         logger.debug("App.start()")
 
-        selfviewmanager.run_view("main_menu")
+        self.viewmanager.run_view("main_menu")
 
-        running = True
+        self.running = True
         try:
-            while running:
+            while self.running:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
-                        running = False
+                        self.running = False
                     if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                        running = False
-                    selfviewmanager.handle_event(event)
+                        self.running = False
+                    self.viewmanager.handle_event(event)
 
-                selfviewmanager.update()
-                selfviewmanager.draw()
+                self.viewmanager.update()
+                self.viewmanager.draw()
 
                 pygame.display.flip()
                 self.clock.tick(FPS)

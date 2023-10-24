@@ -1,10 +1,13 @@
+import os
 import time
 import logging
 logger = logging.getLogger()
 
-import arcade
 
-from grub.app import GAME_WINDOW
+from gamelib.globals import *
+from gamelib.colors import Colors, arcade_colors
+
+from grub.app import MY_DIR
 from grub.config import LIFE_SUCK_RATE
 
 # NOTE: only for MacOS... need to test on rpi
@@ -15,16 +18,15 @@ SNAKE_STARTING_POS = (20, 20)
 
 BORDER_WIDTH = 6
 
-TOP_SPEED = 10
+TOP_SPEED = 6
 
-class Player(arcade.Sprite):
+class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.size = 50
-        self.texture = arcade.make_soft_square_texture(self.size, arcade.color.YELLOW, center_alpha=255, outer_alpha=55)
+        # self.texture = pygame.image.load("./grub/resources/img/whiteplayer.PNG").convert_alpha()
+        self.texture = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'whiteplayer.PNG')).convert_alpha()
 
-        # self.center_x = 100
-        # self.center_y = 100
 
         self.speed_x = 1
         self.speed_y = 1
@@ -34,6 +36,7 @@ class Player(arcade.Sprite):
 
 
         self.snake = []
+        self.snake.append(SNAKE_STARTING_POS)
         for i in range(10):
             self.snake.append((SNAKE_STARTING_POS[0] + (i * 4) * self.speed_x, SNAKE_STARTING_POS[1] + (i * 4) * self.speed_y))
 
@@ -45,20 +48,6 @@ class Player(arcade.Sprite):
             self.last_life_loss = time.time()
             # logger.info("life: %s", self.life)
 
-        # self.center_x += self.dir_x
-        # self.center_y += self.dir_y
-
-        # if self.center_x > GAME_WINDOW.width - self.size // 2:
-        #     self.dir_x = -self.dir_x
-        # elif self.center_x < 0 + self.size // 2:
-        #     self.dir_x = -self.dir_x
-
-        # if self.center_y > GAME_WINDOW.height - self.size // 2 - TOP_BAR_HEIGHT:
-        #     self.dir_y = -self.dir_y
-        # elif self.center_y < 0 + self.size // 2:
-        #     self.dir_y = -self.dir_y
-
-
         ### MOVEMENT AND CONFINEMENT
         head = self.snake[0]
         new_head = (head[0] + self.speed_x, head[1] + self.speed_y)
@@ -67,37 +56,27 @@ class Player(arcade.Sprite):
             self.speed_x = -self.speed_x
             new_head = (BORDER_WIDTH, new_head[1])
 
-        if new_head[0] > GAME_WINDOW.width - BORDER_WIDTH - self.size:
+        if new_head[0] > SCREEN_WIDTH - BORDER_WIDTH - self.size:
             self.speed_x = -self.speed_x
-            new_head = (GAME_WINDOW.width - BORDER_WIDTH - self.size, new_head[1])
+            new_head = (SCREEN_WIDTH - BORDER_WIDTH - self.size, new_head[1])
 
         if new_head[1] < BORDER_WIDTH:
             self.speed_y = -self.speed_y
             new_head = (new_head[0], BORDER_WIDTH)
         
-        if new_head[1] > GAME_WINDOW.height - BORDER_WIDTH - self.size:
+        if new_head[1] > SCREEN_HEIGHT - BORDER_WIDTH - self.size:
             self.speed_y = -self.speed_y
-            new_head = (new_head[0], GAME_WINDOW.height - BORDER_WIDTH - self.size) # hmmm
+            new_head = (new_head[0], SCREEN_HEIGHT - BORDER_WIDTH - self.size) # hmmm
 
         self.snake.insert(0, new_head)
         self.snake.pop()
 
     
     def draw(self):
-        for i in range(len(self.snake) - 1):
-            arcade.draw_lrwh_rectangle_textured(self.snake[i][0], self.snake[i][1], self.size - i, self.size - i, self.texture)
-            # arcade.draw_xywh_rectangle_filled(self.snake[i][0], self.snake[i][1], self.size - i, self.size - i, arcade.color.WHITE)
-            # arcade.draw_line(
-            #     self.snake[i][0] + self.size / 2, self.snake[i][1] + self.size / 2, self.snake[i + 1][0] + self.size / 2, self.snake[i + 1][1] + self.size / 2,
-            #     arcade.color.WHITE,
-            #     line_width=self.size - i)
-
-                # # [self.snake[i][0] + self.bigness / 2, self.snake[i][1] + self.bigness / 2, self.snake[i + 1][0] + self.bigness / 2, self.snake[i + 1][1] + self.bigness / 2],
-                # fill=SNAKE_COLOR,
-                # # width= i + self.bigness)
-                # # width=i + 1)
-                # width=self.bigness - i)
-
+        # for i in range(len(self.snake) - 1):
+        for i in range(len(self.snake) - 1, 0, -1):
+            # pygame.draw.rect(APP_SCREEN, self.texture, (self.snake[i][0], self.snake[i][1], self.size - i, self.size - i))
+            APP_SCREEN.blit(self.texture, (self.snake[i][0], self.snake[i][1]))
 
 
     def change_speed(self, delta: int) -> None:

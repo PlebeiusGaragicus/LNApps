@@ -2,11 +2,13 @@ import time
 import logging
 logger = logging.getLogger()
 
-import arcade
+import pygame
 
+from gamelib.globals import *
 from gamelib.texteffect import FlashText
 
-from grub.app import GAME_WINDOW, Game
+
+# from grub.app import GAME_WINDOW, Game
 
 
 class SplashScreenView( arcade.View ):
