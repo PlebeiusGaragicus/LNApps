@@ -1,5 +1,6 @@
 import os
 import platform
+import time
 import json
 import logging
 logger = logging.getLogger()
@@ -68,8 +69,16 @@ class App(Singleton):
 
         if platform.system() == "Darwin":
             app.screen = pygame.display.set_mode((app.width, app.height), flags=pygame.NOFRAME)
+            # this 'hack' ensures that the newly created window becomes active
+            time.sleep(0.1)
+            pygame.display.toggle_fullscreen()
+            time.sleep(0.1)
+            pygame.display.toggle_fullscreen()
         else:
             app.screen = pygame.display.set_mode(flags=pygame.FULLSCREEN | pygame.NOFRAME)
+
+        pygame.display.set_allow_screensaver(False)
+        pygame.mouse.set_visible(False)
 
         # global APP_SCREEN
         globals.APP_SCREEN = app.screen

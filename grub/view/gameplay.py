@@ -1,4 +1,5 @@
 import time
+import random
 import math
 import logging
 logger = logging.getLogger()
@@ -12,29 +13,35 @@ from gamelib.viewstate import View
 
 from grub.config import HOLD_TO_QUIT_SECONDS, COOLDOWN_DIRECTIONAL_SECONDS
 from grub.actor.player import Player
-from grub.actor.food import Food
+from grub.actor.agent import Agent
+# from grub.actor.food import Food
 
-
+AGENT_SPAWN_INTERVAL_SECONDS = 0.4
 
 class GameplayView(View):
     def __init__(self):
         super().__init__()
+
+        ### CONTROL
         self.start_time = time.time()
+        self.last_agent_spawn_time = time.time()
+
         self.paused = False
         self.escape_pressed_time = None
-
         self.alive = True
-        self.player: Player = Player()
-        self.food = [Food(200, 150)]
+        self.cooldown_keys: dict[CooldownKey] = {
+            KEY_UP: CooldownKey(pygame.K_w, COOLDOWN_DIRECTIONAL_SECONDS),
+            KEY_DOWN: CooldownKey(pygame.K_s, COOLDOWN_DIRECTIONAL_SECONDS),
+            KEY_LEFT: CooldownKey(pygame.K_a, COOLDOWN_DIRECTIONAL_SECONDS),
+            KEY_RIGHT: CooldownKey(pygame.K_d, COOLDOWN_DIRECTIONAL_SECONDS),
+        }
 
+        ### UI
         self.border_width = 6
 
-        self.cooldown_keys: dict[CooldownKey] = {
-            KEY_UP: CooldownKey(pygame.K_UP, COOLDOWN_DIRECTIONAL_SECONDS),
-            KEY_DOWN: CooldownKey(pygame.K_DOWN, COOLDOWN_DIRECTIONAL_SECONDS),
-            KEY_LEFT: CooldownKey(pygame.K_LEFT, COOLDOWN_DIRECTIONAL_SECONDS),
-            KEY_RIGHT: CooldownKey(pygame.K_RIGHT, COOLDOWN_DIRECTIONAL_SECONDS),
-        }
+        ### AGENTS
+        self.player: Player = Player()
+        self.actor_group = pygame.sprite.Group()
 
 
     def revive(self):
@@ -58,17 +65,15 @@ class GameplayView(View):
         if self.paused:
             return
 
+        # every 10 seconds...
+        if time.time() > self.last_agent_spawn_time + AGENT_SPAWN_INTERVAL_SECONDS:
+            self.last_agent_spawn_time = time.time()
+            self.spawn_agent()
+
         self.handle_cooldown_keys()
+        self.actor_group.update()
         self.player.update()
 
-
-        
-
-        # for food in self.food:
-        #     if food.snake_is_close(self.snake):
-        #         self.food.remove(food)
-        #         self.food.append(Food(random.randint(BORDER_WIDTH, SCREEN_SIZE[0] - BORDER_WIDTH - 6), random.randint(BORDER_WIDTH, SCREEN_SIZE[1] - BORDER_WIDTH - 6)))
-                # self.snake.append(self.snake[-1])
 
 
 
@@ -97,8 +102,12 @@ class GameplayView(View):
         # arcade.draw_text(f"Pressed keys: {pressed_keys}", SCREEN_WIDTH - 10, SCREEN_HEIGHT * 0.9, arcade.color.WHITE, font_size=20, anchor_x="right")
 
 
-        self.player.draw()
+        # self.actor_group.draw(APP_SCREEN) # TODO: hmm... this doesn't work
+        for a in self.actor_group:
+            a.draw()
+
         # self.player.draw_hit_box(arcade.color.BLUE)
+        self.player.draw()
 
         if self.paused:
             pass
@@ -167,13 +176,28 @@ class GameplayView(View):
         # NOTE: these can't be elif becuase this is also run in on_update() and it needs to process every one of these
 
         if self.cooldown_keys[KEY_UP].run(key=key):
-            self.player.change_speed_cap(y_delta=-1)
+            # self.player.change_speed_cap(y_delta=-1)
+            self.player.acceleration.y += -1
 
         if self.cooldown_keys[KEY_DOWN].run(key=key):
-            self.player.change_speed_cap(y_delta=1)
+            # self.player.change_speed_cap(y_delta=1)
+            self.player.acceleration.y += 1
 
         if self.cooldown_keys[KEY_LEFT].run(key=key):
-            self.player.change_speed_cap(x_delta=-1)
+            # self.player.change_speed_cap(x_delta=-1)
+            self.player.acceleration.x += -1
 
         if self.cooldown_keys[KEY_RIGHT].run(key=key):
-            self.player.change_speed_cap(x_delta=1)
+            # self.player.change_speed_cap(x_delta=1)
+            self.player.acceleration.x += 1
+
+
+    def spawn_agent(self):
+        # TODO
+        agent = Agent()
+        agent.position.x = random.randint(0, SCREEN_WIDTH)
+        agent.position.y = random.randint(0, SCREEN_HEIGHT)
+        agent.velocity.x = random.randint(-2, 2)
+        agent.velocity.y = random.randint(-2, 2)
+        agent.target = self.player
+        self.actor_group.add(agent)

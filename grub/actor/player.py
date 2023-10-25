@@ -1,4 +1,5 @@
 import os
+import platform
 import time
 import logging
 logger = logging.getLogger()
@@ -12,93 +13,95 @@ from grub.config import LIFE_SUCK_RATE
 
 # NOTE: only for MacOS... need to test on rpi
 # this is because of the menu bar / camera cutout on the macbook air
-TOP_BAR_HEIGHT = 30
+TOP_BAR_HEIGHT = 0
+if platform.system() == "Darwin":
+    TOP_BAR_HEIGHT = 34
 
 SNAKE_STARTING_POS = (20, 20)
 
 BORDER_WIDTH = 6
 
-TOP_SPEED = 6
+TOP_SPEED = 100
+
+WALL_BOUNCE_ATTENUATION = 0.80
+
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.size = 50
-        # self.texture = pygame.image.load("./grub/resources/img/whiteplayer.PNG").convert_alpha()
-        self.texture = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'whiteplayer.PNG')).convert_alpha()
-
-
-        self.speed_x = 1
-        self.speed_y = 1
+        # self.size = pygame.Vector2(50, 50)  # Use Vector2 for size as well
+        # self.size = 50
+        self.texture = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'snakehead.PNG')).convert_alpha()
+        self.size = pygame.Vector2(self.texture.get_size())
+        # self.texture = pygame.transform.scale(self.texture, (int(self.size.x), int(self.size.y)))  # Scale texture to size
 
         self.life = 100
         self.last_life_loss = time.time()
 
-
-        self.snake = []
-        self.snake.append(SNAKE_STARTING_POS)
-        for i in range(10):
-            self.snake.append((SNAKE_STARTING_POS[0] + (i * 4) * self.speed_x, SNAKE_STARTING_POS[1] + (i * 4) * self.speed_y))
-
+        self.position = pygame.Vector2(SNAKE_STARTING_POS)  # Use Vector2 for position
+        self.velocity = pygame.Vector2(1, 1)  # Use Vector2 for velocity
+        self.acceleration = pygame.Vector2(0, 0)  # Use Vector2 for acceleration
 
     def update(self):
-        # lose life every second
         if time.time() > self.last_life_loss + 1:
             self.life -= LIFE_SUCK_RATE
             self.last_life_loss = time.time()
-            # logger.info("life: %s", self.life)
 
         ### MOVEMENT AND CONFINEMENT
-        head = self.snake[0]
-        new_head = (head[0] + self.speed_x, head[1] + self.speed_y)
 
-        if new_head[0] < BORDER_WIDTH:
-            self.speed_x = -self.speed_x
-            new_head = (BORDER_WIDTH, new_head[1])
+        self.velocity += self.acceleration
+        self.acceleration *= 0.4
+        self.velocity *= 0.98
 
-        if new_head[0] > SCREEN_WIDTH - BORDER_WIDTH - self.size:
-            self.speed_x = -self.speed_x
-            new_head = (SCREEN_WIDTH - BORDER_WIDTH - self.size, new_head[1])
+        self.velocity.x = max(-TOP_SPEED, min(TOP_SPEED, self.velocity.x))
+        self.velocity.y = max(-TOP_SPEED, min(TOP_SPEED, self.velocity.y))
 
-        if new_head[1] < BORDER_WIDTH:
-            self.speed_y = -self.speed_y
-            new_head = (new_head[0], BORDER_WIDTH)
-        
-        if new_head[1] > SCREEN_HEIGHT - BORDER_WIDTH - self.size:
-            self.speed_y = -self.speed_y
-            new_head = (new_head[0], SCREEN_HEIGHT - BORDER_WIDTH - self.size) # hmmm
+        self.position += self.velocity
 
-        self.snake.insert(0, new_head)
-        self.snake.pop()
+        self.bounce_off_walls(attenuate=True)
 
-    
+
     def draw(self):
-        # for i in range(len(self.snake) - 1):
-        for i in range(len(self.snake) - 1, 0, -1):
-            # pygame.draw.rect(APP_SCREEN, self.texture, (self.snake[i][0], self.snake[i][1], self.size - i, self.size - i))
-            APP_SCREEN.blit(self.texture, (self.snake[i][0], self.snake[i][1]))
+        # rotate the texture
+        texture = pygame.transform.rotate(self.texture, self.velocity.angle_to(pygame.Vector2(0, -1)))
+        APP_SCREEN.blit(texture, (int(self.position.x), int(self.position.y)))
+
+        self.draw_velocity_overlay()
+        self.draw_life_bar()
 
 
-    def change_speed(self, delta: int) -> None:
-        if self.speed_x != 0:
-            self.speed_x -= delta if self.speed_x > 0 else -delta
-        if self.speed_y != 0:
-            self.speed_y -= delta if self.speed_y > 0 else -delta
+    def draw_velocity_overlay(self):
+        player_center = self.position + self.size // 2
+        pygame.draw.line(APP_SCREEN, Colors.GREEN, player_center, player_center + self.velocity * 8, 3)
 
 
-    def change_speed_cap(self, x_delta: int = None, y_delta: int = None) -> None:
-        if x_delta is not None:
-            if abs(self.speed_x) > TOP_SPEED:
-                self.speed_x = TOP_SPEED if self.speed_x > 0 else -TOP_SPEED # cap to TOP SPEED
-                if self.speed_y != 0: # ... the goal is to reduce the X speed by 1, if not zero
-                    self.speed_y -= 1 if self.speed_y > 0 else -1 # move the X speed down (towards zero)
-            else:
-                self.speed_x += x_delta # do the speed increase
+    def draw_life_bar(self):
+        life_bar_width = 100
+        life_bar_height = 10
+        life_bar_x = SCREEN_WIDTH - life_bar_width - 10
+        life_bar_y = 10
 
-        if y_delta is not None:
-            if abs(self.speed_y) > TOP_SPEED:
-                self.speed_y = TOP_SPEED if self.speed_y > 0 else -TOP_SPEED # cap to TOP SPEED
-                if self.speed_x != 0: # ... the goal is to reduce the X speed by 1, if not zero
-                    self.speed_x -= 1 if self.speed_x > 0 else -1 # move the X speed down (towards zero)
-            else:
-                self.speed_y += y_delta # do the speed increase
+        life_bar_rect = pygame.Rect(life_bar_x, life_bar_y, life_bar_width, life_bar_height)
+        pygame.draw.rect(APP_SCREEN, Colors.WHITE, life_bar_rect, 2)
+
+        life_bar_fill_rect = pygame.Rect(life_bar_x + 2, life_bar_y + 2, life_bar_width - 4, life_bar_height - 4)
+        life_bar_fill_rect.width = int(life_bar_fill_rect.width * (self.life / 100))
+        pygame.draw.rect(APP_SCREEN, Colors.RED, life_bar_fill_rect)
+
+
+    def bounce_off_walls(self, attenuate: bool = False):
+        if self.position.x < BORDER_WIDTH:
+            self.velocity.x = abs(self.velocity.x) * WALL_BOUNCE_ATTENUATION if attenuate else abs(self.velocity.x)
+            self.position.x = BORDER_WIDTH
+
+        if self.position.x > SCREEN_WIDTH - BORDER_WIDTH - self.size.x:
+            self.velocity.x = -abs(self.velocity.x) * WALL_BOUNCE_ATTENUATION if attenuate else -abs(self.velocity.x)
+            self.position.x = SCREEN_WIDTH - BORDER_WIDTH - self.size.x
+
+        if self.position.y < BORDER_WIDTH:
+            self.velocity.y = abs(self.velocity.y) * WALL_BOUNCE_ATTENUATION if attenuate else abs(self.velocity.y)
+            self.position.y = BORDER_WIDTH
+
+        if self.position.y > SCREEN_HEIGHT - BORDER_WIDTH - self.size.y:
+            self.velocity.y = -abs(self.velocity.y) * WALL_BOUNCE_ATTENUATION if attenuate else -abs(self.velocity.y)
+            self.position.y = SCREEN_HEIGHT - BORDER_WIDTH - self.size.y

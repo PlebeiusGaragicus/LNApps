@@ -5,6 +5,10 @@ KEY_UP = "up"
 KEY_DOWN = "down"
 KEY_LEFT = "left"
 KEY_RIGHT = "right"
+# KEY_W = "w"
+# KEY_S = "s"
+# KEY_A = "a"
+# KEY_D = "d"
 
 
 class CooldownKey():
