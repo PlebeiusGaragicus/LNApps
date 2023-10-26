@@ -81,7 +81,11 @@ class GameplayView(View):
             if random.randint(1, 100) <= 10:
                 self.spawn_seek_agent()
             else:
-                self.spawn_flee_agent()
+                # 50 percent chance:
+                if random.randint(1, 100) <= 50:
+                    self.spawn_flee_agent()
+                else:
+                    self.spawn_dot_agent()
 
 
         # if time.time() > self.last_flee_agent_spawn_time + AGENT_SPAWN_INTERVAL_SECONDS:
@@ -95,7 +99,8 @@ class GameplayView(View):
 
         self.handle_cooldown_keys()
         # player_rect = self.player.texture.get_rect()
-        self.actor_group.update(player=self.player)
+        # self.actor_group.update(player=self.player)
+        self.actor_group.update()
         self.player.update()
 
         collisions = pygame.sprite.spritecollide(self.player, self.actor_group, False, pygame.sprite.collide_mask)
@@ -103,9 +108,11 @@ class GameplayView(View):
             logger.info("Player collided with agent")
             # agent.dead = True
             if agent.type == AgentType.Shrimp:
-                self.player.adjust_life(6)
+                # self.player.adjust_life(6)
+                pass
             elif agent.type == AgentType.Crab:
-                self.player.adjust_life(-10)
+                # self.player.adjust_life(-10)
+                pass
 
             self.actor_group.remove(agent)
             del agent
@@ -262,12 +269,17 @@ class GameplayView(View):
             self.player.acceleration.x += 1
 
 
-    def spawn_flee_agent(self):
+    def spawn_flee_agent(self): # SHRIMP
         agent = Agent(AgentType.Shrimp)
         agent.target = self.player
         self.actor_group.add(agent)
 
-    def spawn_seek_agent(self):
+    def spawn_seek_agent(self): # CRAB
         agent = Agent(AgentType.Crab)
+        agent.target = self.player
+        self.actor_group.add(agent)
+
+    def spawn_dot_agent(self): # DOT
+        agent = Agent(AgentType.Dot)
         agent.target = self.player
         self.actor_group.add(agent)

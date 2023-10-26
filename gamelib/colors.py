@@ -11,7 +11,7 @@ class Colors:
     LIME = (128, 255, 0)
     GREEN = (0, 255, 0)
     CYAN = (0, 255, 255)
-    BLUE = (255, 0, 0)
+    BLUE = (0, 0, 255)
     MAGENTA = (255, 0, 255)
 
 

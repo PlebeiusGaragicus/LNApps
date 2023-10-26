@@ -1,10 +1,11 @@
 import os
+import sys
 import platform
 import time
 import json
 import logging
 logger = logging.getLogger()
-from icecream import ic
+# from icecream import ic
 
 import pygame
 # for type hinting
@@ -77,7 +78,7 @@ class App(Singleton):
             app.screen = pygame.display.set_mode(flags=pygame.FULLSCREEN | pygame.NOFRAME | pygame.HWSURFACE | pygame.DOUBLEBUF)
 
         pygame.display.set_allow_screensaver(False)
-        pygame.mouse.set_visible(False)
+        # pygame.mouse.set_visible(False)
 
         # global APP_SCREEN
         globals.APP_SCREEN = app.screen
@@ -132,7 +133,6 @@ class App(Singleton):
             except KeyboardInterrupt:
                 logger.info("KeyboardInterrupt")
                 self.running = False
-                raise
 
             except NotImplementedError:
                 logger.critical("NotImplementedError")
@@ -142,10 +142,11 @@ class App(Singleton):
                 # TODO - do something useful and cool here.. make my own exception view like the seedsigner!
                 logger.exception(e)
                 self.running = False
-                raise e
 
-        self.stop()
-
+        pygame.quit()
+        sys.exit()
 
     def stop(self):
         self.running = False
+        # pygame.quit()
+        # sys.exit()

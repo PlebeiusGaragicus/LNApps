@@ -20,3 +20,10 @@ MAX_AGENTS = 900
 PLAYER_STARTING_POS = (20, 20)
 WALL_BOUNCE_ATTENUATION = 0.80
 TOP_SPEED = 100
+
+#NOTE: This would create a circular import
+# from grub.view.camera import Camera
+# CAMERA: Camera = None
+
+# from grub.actor.player import Player
+# PLAYER: Player = None
