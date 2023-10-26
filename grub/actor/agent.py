@@ -7,16 +7,14 @@ logger = logging.getLogger()
 import pygame
 
 from gamelib.globals import APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
-from gamelib.colors import Colors, arcade_colors
+from gamelib.colors import Colors
 
 from grub.config import *
 from grub.app import MY_DIR
 from grub.actor.steeringbehaviour import SteeringBehaviour, BehaviorType
+from grub.view.camera import CAMERA
 
-WALL_BOUNCE_ATTENUATION = 0.80
-SNAKE_STARTING_POS = (170, 170)
-TOP_SPEED = 50
-
+SAFE_BUFFER = 100
 
 class AgentType(enum.Enum):
     Shrimp = enum.auto()
@@ -46,8 +44,9 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
         self.type = type
 
         if type == AgentType.Shrimp:
-            self.position.x = random.randint(0, SCREEN_WIDTH)
-            self.position.y = random.randint(0, SCREEN_HEIGHT)
+            # TODO: make a SafeXY() just like grigwars
+            self.position.x = random.randint(SAFE_BUFFER, PLAYFIELD_WIDTH - SAFE_BUFFER)
+            self.position.y = random.randint(SAFE_BUFFER, PLAYFIELD_HEIGHT - SAFE_BUFFER)
             self.velocity.x = random.randint(-2, 2)
             self.velocity.y = random.randint(-2, 2)
             self.max_speed = 9
@@ -57,8 +56,8 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
             self.wall_behavior = 'bounce'
             self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'yellowshot.PNG')).convert_alpha()
         elif type == AgentType.Crab:
-            self.position.x = random.randint(0, SCREEN_WIDTH)
-            self.position.y = random.randint(0, SCREEN_HEIGHT)
+            self.position.x = random.randint(SAFE_BUFFER, PLAYFIELD_WIDTH - SAFE_BUFFER)
+            self.position.y = random.randint(SAFE_BUFFER, PLAYFIELD_HEIGHT - SAFE_BUFFER)
             self.velocity.x = random.randint(-2, 2)
             self.velocity.y = random.randint(-2, 2)
             self.max_speed  = 12 #4
@@ -75,7 +74,7 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
         self.mask = pygame.mask.from_surface(self.image)
 
 
-        self.invisible = False
+        # self.invisible = False
         self.dead = False
 
 
@@ -97,14 +96,13 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
         self.rect.topleft = self.position
 
     def draw(self):
-        if not self.invisible:
-            image = pygame.transform.rotate(self.image, self.velocity.angle_to(pygame.Vector2(0, -1)))
-            APP_SCREEN.blit(image, (int(self.position.x), int(self.position.y)))
+        image = pygame.transform.rotate(self.image, self.velocity.angle_to(pygame.Vector2(0, -1)))
+        # APP_SCREEN.blit(image, (int(self.position.x), int(self.position.y)))
+
+        _pos = pygame.Vector2(self.position.x - CAMERA.offset.x, self.position.y - CAMERA.offset.y)
+        APP_SCREEN.blit(image, _pos)
 
         self.draw_vectors()
-
-        # pygame.draw.rect(APP_SCREEN, Colors.WHITE, self.rect, 2)
-
 
 
 
@@ -112,22 +110,22 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
         if self.position.x < 0:
             self.position.x = 0
             self.velocity.x *= -WALL_BOUNCE_ATTENUATION if attenuate else -1
-        if self.position.x > SCREEN_WIDTH - self.size.x:
-            self.position.x = SCREEN_WIDTH - self.size.x
+        if self.position.x > PLAYFIELD_WIDTH - self.size.x:
+            self.position.x = PLAYFIELD_WIDTH - self.size.x
             self.velocity.x *= -WALL_BOUNCE_ATTENUATION if attenuate else -1
         if self.position.y < 0:
             self.position.y = 0
             self.velocity.y *= -WALL_BOUNCE_ATTENUATION if attenuate else -1
-        if self.position.y > SCREEN_HEIGHT - self.size.y:
-            self.position.y = SCREEN_HEIGHT - self.size.y
+        if self.position.y > PLAYFIELD_WIDTH - self.size.y:
+            self.position.y = PLAYFIELD_WIDTH - self.size.y
             self.velocity.y *= -WALL_BOUNCE_ATTENUATION if attenuate else -1
 
     def wrap_screen(self):
         if self.position.x < 0:
-            self.position.x = SCREEN_WIDTH - self.size.x
-        if self.position.x > SCREEN_WIDTH - self.size.x:
+            self.position.x = PLAYFIELD_WIDTH - self.size.x
+        if self.position.x > PLAYFIELD_WIDTH - self.size.x:
             self.position.x = 0
         if self.position.y < 0:
-            self.position.y = SCREEN_HEIGHT - self.size.x
-        if self.position.y > SCREEN_HEIGHT - self.size.x:
+            self.position.y = PLAYFIELD_WIDTH - self.size.x
+        if self.position.y > PLAYFIELD_WIDTH - self.size.x:
             self.position.y = 0

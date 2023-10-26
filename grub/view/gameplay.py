@@ -6,18 +6,23 @@ logger = logging.getLogger()
 
 import pygame
 
-from gamelib.colors import Colors, arcade_colors
+from gamelib.colors import Colors
 from gamelib.globals import APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
 from gamelib.cooldown_keys import CooldownKey, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT
 from gamelib.viewstate import View
 
-from grub.config import HOLD_TO_QUIT_SECONDS, COOLDOWN_DIRECTIONAL_SECONDS
+# from grub.config import HOLD_TO_QUIT_SECONDS, COOLDOWN_DIRECTIONAL_SECONDS
+from grub.config import *
 from grub.actor.player import Player
 from grub.actor.agent import Agent, AgentType
 from grub.actor.steeringbehaviour import BehaviorType
-# from grub.actor.food import Food
+from grub.view.camera import CAMERA
 
-AGENT_SPAWN_INTERVAL_SECONDS = 0.4
+
+
+
+
+
 
 class GameplayView(View):
     def __init__(self):
@@ -43,7 +48,9 @@ class GameplayView(View):
         self.border_width = 6
 
         ### AGENTS
+        # self.camera = Camera()
         self.player: Player = Player()
+        CAMERA.target = self.player
         self.actor_group = pygame.sprite.Group()
 
 
@@ -69,13 +76,21 @@ class GameplayView(View):
             return
 
         # every 10 seconds...
-        if time.time() > self.last_flee_agent_spawn_time + AGENT_SPAWN_INTERVAL_SECONDS:
-            self.last_flee_agent_spawn_time = time.time()
-            self.spawn_flee_agent()
+        while len(self.actor_group) < MAX_AGENTS:
+            # ten percent chance:
+            if random.randint(1, 100) <= 10:
+                self.spawn_seek_agent()
+            else:
+                self.spawn_flee_agent()
 
-        if time.time() > self.last_seek_agent_spawn_time + AGENT_SPAWN_INTERVAL_SECONDS * 10:
-            self.last_seek_agent_spawn_time = time.time()
-            self.spawn_seek_agent()
+
+        # if time.time() > self.last_flee_agent_spawn_time + AGENT_SPAWN_INTERVAL_SECONDS:
+        #     self.last_flee_agent_spawn_time = time.time()
+        #     self.spawn_flee_agent()
+
+        # if time.time() > self.last_seek_agent_spawn_time + AGENT_SPAWN_INTERVAL_SECONDS * 10:
+        #     self.last_seek_agent_spawn_time = time.time()
+        #     self.spawn_seek_agent()
 
 
         self.handle_cooldown_keys()
@@ -87,13 +102,16 @@ class GameplayView(View):
         for agent in collisions:
             logger.info("Player collided with agent")
             # agent.dead = True
+            if agent.type == AgentType.Shrimp:
+                self.player.adjust_life(6)
+            elif agent.type == AgentType.Crab:
+                self.player.adjust_life(-10)
+
             self.actor_group.remove(agent)
             del agent
 
-        # for agent in self.actor_group:
-        #     if agent.dead:
-        #         self.actor_group.remove(agent)
-        #         del agent
+        # self.camera.update( self.player )
+        CAMERA.update()
 
 
 
@@ -103,7 +121,29 @@ class GameplayView(View):
 
         # draw a border around the game window
         # arcade.draw_rectangle_outline(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT, arcade.color.GREEN, border_width=self.border_width)
-        pygame.draw.rect(APP_SCREEN, Colors.GREEN, (0, 0, SCREEN_WIDTH, SCREEN_HEIGHT), self.border_width)
+        # pygame.draw.rect(APP_SCREEN, Colors.GREEN, (0, 0, SCREEN_WIDTH, SCREEN_HEIGHT), self.border_width)
+
+        # draw a line from 0,0 to 0, screen height using pygame
+        _start = pygame.Vector2(-CAMERA.offset.x, -CAMERA.offset.y)
+        _end = pygame.Vector2(-CAMERA.offset.x, -CAMERA.offset.y + PLAYFIELD_HEIGHT)
+        # pygame.draw.line(APP_SCREEN, Colors.GREEN, (0, 0), (0, SCREEN_HEIGHT), self.border_width)
+        pygame.draw.line(APP_SCREEN, Colors.GREEN, _start, _end, self.border_width)
+
+        # draw a line from 0,0 to screen width, 0 using pygame
+        _start = pygame.Vector2(-CAMERA.offset.x, -CAMERA.offset.y)
+        _end = pygame.Vector2(-CAMERA.offset.x + PLAYFIELD_WIDTH, -CAMERA.offset.y)
+        pygame.draw.line(APP_SCREEN, Colors.GREEN, _start, _end, self.border_width)
+
+        # draw a line from screen width, 0 to screen width, screen height using pygame
+        _start = pygame.Vector2(-CAMERA.offset.x + PLAYFIELD_WIDTH, -CAMERA.offset.y)
+        _end = pygame.Vector2(-CAMERA.offset.x + PLAYFIELD_WIDTH, -CAMERA.offset.y + PLAYFIELD_HEIGHT)
+        pygame.draw.line(APP_SCREEN, Colors.GREEN, _start, _end, self.border_width)
+
+        # draw a line from 0, screen height to screen width, screen height using pygame
+        _start = pygame.Vector2(-CAMERA.offset.x, -CAMERA.offset.y + PLAYFIELD_HEIGHT)
+        _end = pygame.Vector2(-CAMERA.offset.x + PLAYFIELD_WIDTH, -CAMERA.offset.y + PLAYFIELD_HEIGHT)
+        pygame.draw.line(APP_SCREEN, Colors.GREEN, _start, _end, self.border_width)
+
 
         # show life in top left corner
         # TODO
@@ -127,6 +167,7 @@ class GameplayView(View):
             a.draw()
 
         # self.player.draw_hit_box(arcade.color.BLUE)
+        # self.player.draw( self.camera )
         self.player.draw()
 
         if self.paused:

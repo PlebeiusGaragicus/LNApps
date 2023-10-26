@@ -22,7 +22,6 @@ MY_DIR = os.path.dirname(os.path.abspath(__file__))
 # APP_SCREEN: pygame.Surface = None
 # SCREEN_HEIGHT = None
 # SCREEN_WIDTH = None
-FPS = 60
 
 
 
@@ -68,14 +67,14 @@ class App(Singleton):
         logger.debug("Display size: %s x %s", app.width, app.height)
 
         if platform.system() == "Darwin":
-            app.screen = pygame.display.set_mode((app.width, app.height), flags=pygame.NOFRAME)
+            app.screen = pygame.display.set_mode((app.width, app.height), flags=pygame.NOFRAME | pygame.DOUBLEBUF | pygame.HWSURFACE)
             # this 'hack' ensures that the newly created window becomes active
             time.sleep(0.1)
             pygame.display.toggle_fullscreen()
             time.sleep(0.1)
             pygame.display.toggle_fullscreen()
         else:
-            app.screen = pygame.display.set_mode(flags=pygame.FULLSCREEN | pygame.NOFRAME)
+            app.screen = pygame.display.set_mode(flags=pygame.FULLSCREEN | pygame.NOFRAME | pygame.HWSURFACE | pygame.DOUBLEBUF)
 
         pygame.display.set_allow_screensaver(False)
         pygame.mouse.set_visible(False)
@@ -105,10 +104,11 @@ class App(Singleton):
     def start(self):
         logger.debug("App.start()")
 
-        if self.manifest.get('skip_intro', False):
-            self.viewmanager.run_view("main_menu")
-        else:
-            self.viewmanager.run_view("splash_screen")
+        self.viewmanager.run_view("gameplay")
+        # if self.manifest.get('skip_intro', False) == True:
+        #     self.viewmanager.run_view("main_menu")
+        # else:
+        #     self.viewmanager.run_view("splash_screen")
 
         self.running = True
         while self.running:

@@ -6,10 +6,12 @@ logger = logging.getLogger()
 
 
 from gamelib.globals import *
-from gamelib.colors import Colors, arcade_colors
+from gamelib.colors import Colors
 
+# from grub.config import LIFE_SUCK_RATE, BORDER_WIDTH, PLAYER_STARTING_POS, TOP_SPEED, WALL_BOUNCE_ATTENUATION
+from grub.config import *
 from grub.app import MY_DIR
-from grub.config import LIFE_SUCK_RATE
+from grub.view.camera import CAMERA
 
 # NOTE: only for MacOS... need to test on rpi
 # this is because of the menu bar / camera cutout on the macbook air
@@ -17,19 +19,14 @@ TOP_BAR_HEIGHT = 0
 if platform.system() == "Darwin":
     TOP_BAR_HEIGHT = 34
 
-SNAKE_STARTING_POS = (20, 20)
 
-BORDER_WIDTH = 6
 
-TOP_SPEED = 100
-
-WALL_BOUNCE_ATTENUATION = 0.80
 
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.position = pygame.Vector2(SNAKE_STARTING_POS)  # Use Vector2 for position
+        self.position = pygame.Vector2(PLAYER_STARTING_POS)  # Use Vector2 for position
         self.velocity = pygame.Vector2(1, 1)  # Use Vector2 for velocity
         self.acceleration = pygame.Vector2(0, 0)  # Use Vector2 for acceleration
 
@@ -69,7 +66,12 @@ class Player(pygame.sprite.Sprite):
     def draw(self):
         # rotate the image
         _img = pygame.transform.rotate(self.image, self.velocity.angle_to(pygame.Vector2(0, -1)))
-        APP_SCREEN.blit(_img, (int(self.position.x), int(self.position.y)))
+
+        # pixel location is player pos - camera offset
+        _x = int(self.position.x - CAMERA.offset.x)
+        _y = int(self.position.y - CAMERA.offset.y)
+        # print(f"player pos: {self.position}, camera offset: {CAMERA.offset}, draw pos: ({_x}, {_y})")
+        APP_SCREEN.blit(_img, (_x, _y))
 
         self.draw_velocity_overlay()
         self.draw_life_bar()
@@ -80,6 +82,7 @@ class Player(pygame.sprite.Sprite):
 
     def draw_velocity_overlay(self):
         player_center = self.position + self.size // 2
+        player_center -= CAMERA.offset
         pygame.draw.line(APP_SCREEN, Colors.GREEN, player_center, player_center + self.velocity * 8, 3)
 
 
@@ -102,14 +105,18 @@ class Player(pygame.sprite.Sprite):
             self.velocity.x = abs(self.velocity.x) * WALL_BOUNCE_ATTENUATION if attenuate else abs(self.velocity.x)
             self.position.x = BORDER_WIDTH
 
-        if self.position.x > SCREEN_WIDTH - BORDER_WIDTH - self.size.x:
+        if self.position.x > PLAYFIELD_WIDTH - BORDER_WIDTH - self.size.x:
             self.velocity.x = -abs(self.velocity.x) * WALL_BOUNCE_ATTENUATION if attenuate else -abs(self.velocity.x)
-            self.position.x = SCREEN_WIDTH - BORDER_WIDTH - self.size.x
+            self.position.x = PLAYFIELD_WIDTH - BORDER_WIDTH - self.size.x
 
         if self.position.y < BORDER_WIDTH:
             self.velocity.y = abs(self.velocity.y) * WALL_BOUNCE_ATTENUATION if attenuate else abs(self.velocity.y)
             self.position.y = BORDER_WIDTH
 
-        if self.position.y > SCREEN_HEIGHT - BORDER_WIDTH - self.size.y:
+        if self.position.y > PLAYFIELD_HEIGHT - BORDER_WIDTH - self.size.y:
             self.velocity.y = -abs(self.velocity.y) * WALL_BOUNCE_ATTENUATION if attenuate else -abs(self.velocity.y)
-            self.position.y = SCREEN_HEIGHT - BORDER_WIDTH - self.size.y
+            self.position.y = PLAYFIELD_HEIGHT - BORDER_WIDTH - self.size.y
+
+    def adjust_life(self, amount: int):
+        self.life += amount
+        self.life = max(0, min(100, self.life))

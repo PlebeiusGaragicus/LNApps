@@ -3,8 +3,10 @@ logger = logging.getLogger()
 
 import pygame
 
-from gamelib.colors import Colors, arcade_colors
+from gamelib.colors import Colors
 from gamelib.globals import APP_SCREEN
+
+from grub.view.camera import CAMERA
 
 NULL_VECTOR = pygame.Vector2(0, 0)
 
@@ -88,6 +90,7 @@ class SteeringBehaviour:
 
     def draw_vector(self, vec, color: pygame.Color = Colors.RED, magnitude = 8):
         player_center = self.position + self.size // 2
+        player_center += -CAMERA.offset
         pygame.draw.line(APP_SCREEN, color, player_center, player_center + vec * magnitude, 3)
 
 
