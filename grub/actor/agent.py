@@ -1,5 +1,8 @@
 import os
 import random
+import enum
+import logging
+logger = logging.getLogger()
 
 import pygame
 
@@ -8,57 +11,101 @@ from gamelib.colors import Colors, arcade_colors
 
 from grub.config import *
 from grub.app import MY_DIR
-from grub.actor.steeringbehaviour import SteeringBehaviour
+from grub.actor.steeringbehaviour import SteeringBehaviour, BehaviorType
 
 WALL_BOUNCE_ATTENUATION = 0.80
 SNAKE_STARTING_POS = (170, 170)
 TOP_SPEED = 50
 
+
+class AgentType(enum.Enum):
+    Shrimp = enum.auto()
+    Crab = enum.auto()
+    Octopus = enum.auto()
+    Fish = enum.auto()
+    Dolphin = enum.auto()
+    Shark = enum.auto()
+    Whale = enum.auto()
+    Humpback = enum.auto()
+
+
+
 class Agent(pygame.sprite.Sprite, SteeringBehaviour):
-    def __init__(self):
+    def __init__(self, type: AgentType):
         # super().__init__()
         pygame.sprite.Sprite.__init__(self)
         SteeringBehaviour.__init__(self=self,
                                    mass=100,
                                 #    position=pygame.Vector2(SNAKE_STARTING_POS),
                                    position=pygame.Vector2(random.randint(0, SCREEN_WIDTH), random.randint(0, SCREEN_HEIGHT)),
-                                   max_speed=2,
-                                   max_force=0.1,
+                                   max_speed=5,
+                                   max_force=0.03,
                                    velocity=pygame.Vector2(1, 1),
                                    heading=pygame.Vector2(1, 1))
 
-        self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'yellowshot.PNG')).convert_alpha()
-        self.size = pygame.Vector2(self.image.get_size())
+        self.type = type
+
+        if type == AgentType.Shrimp:
+            self.position.x = random.randint(0, SCREEN_WIDTH)
+            self.position.y = random.randint(0, SCREEN_HEIGHT)
+            self.velocity.x = random.randint(-2, 2)
+            self.velocity.y = random.randint(-2, 2)
+            self.max_speed = 9
+            self.max_force = 0.08
+            self.deceleration_tweaker = 1.4
+            self.behavior_type = BehaviorType.FLEE
+            self.wall_behavior = 'bounce'
+            self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'yellowshot.PNG')).convert_alpha()
+        elif type == AgentType.Crab:
+            self.position.x = random.randint(0, SCREEN_WIDTH)
+            self.position.y = random.randint(0, SCREEN_HEIGHT)
+            self.velocity.x = random.randint(-2, 2)
+            self.velocity.y = random.randint(-2, 2)
+            self.max_speed  = 12 #4
+            self.max_force  = 0.1 #0.05
+            self.deceleration_tweaker = 2.4
+            self.behavior_type = BehaviorType.SEEK
+            self.wall_behavior = 'bounce'
+            self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'purplesquare2.PNG')).convert_alpha()
 
         # self.image.set_colorkey((0, 0, 0))
-        self.rect = self.image.get_rect()
-        # self.position = pygame.Vector2(SNAKE_STARTING_POS)
-        # self.velocity = pygame.Vector2(1, 1)
-        # self.acceleration = pygame.Vector2(0, 0)
+        # self.rect = self.image.get_rect()
+        self.size = pygame.Vector2(self.image.get_size())
+        self.rect = self.image.get_rect(topleft=self.position) # <-- this is the key to getting the collision detection bounding box to move with the sprite
+        self.mask = pygame.mask.from_surface(self.image)
 
-    def update(self):
-        # self.velocity += self.acceleration
-        # self.acceleration *= 0.4
-        # self.velocity.x = max(-TOP_SPEED, min(TOP_SPEED, self.velocity.x))
-        # self.velocity.y = max(-TOP_SPEED, min(TOP_SPEED, self.velocity.y))
-        # self.velocity += self.seek(pygame.Vector2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2))
-        self.velocity += self.seek()
-        self.velocity *= 1.001
-        self.position += self.velocity
 
-        self.bounce_off_walls(attenuate=True)
-        # self.wrap_screen()
+        self.invisible = False
+        self.dead = False
+
+
+    def update(self, player):
+        if self.dead:
+            return
+
+        # super().update() # this is the SteeringBehaviour update() and isn't working - perhaps because there are multiple inherited classes?
+        self.update_steering()
+
+        # TODO - just use a type class...
+        if self.wall_behavior == 'bounce':
+            self.bounce_off_walls(attenuate=True)
+        elif self.wall_behavior == 'wrap':
+            self.wrap_screen()
+        else:
+            logger.warning("Unknown wall behavior: %s", self.wall_behavior)
+        
+        self.rect.topleft = self.position
 
     def draw(self):
-        image = pygame.transform.rotate(self.image, self.velocity.angle_to(pygame.Vector2(0, -1)))
-        APP_SCREEN.blit(image, (int(self.position.x), int(self.position.y)))
+        if not self.invisible:
+            image = pygame.transform.rotate(self.image, self.velocity.angle_to(pygame.Vector2(0, -1)))
+            APP_SCREEN.blit(image, (int(self.position.x), int(self.position.y)))
 
-        self.draw_velocity_overlay()
+        self.draw_vectors()
+
+        # pygame.draw.rect(APP_SCREEN, Colors.WHITE, self.rect, 2)
 
 
-    def draw_velocity_overlay(self):
-        player_center = self.position + self.size / 2
-        pygame.draw.line(APP_SCREEN, Colors.RED, player_center, player_center + self.velocity * 8, 3)
 
 
     def bounce_off_walls(self, attenuate: bool = True) -> None:

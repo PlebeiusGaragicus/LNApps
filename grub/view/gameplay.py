@@ -13,7 +13,8 @@ from gamelib.viewstate import View
 
 from grub.config import HOLD_TO_QUIT_SECONDS, COOLDOWN_DIRECTIONAL_SECONDS
 from grub.actor.player import Player
-from grub.actor.agent import Agent
+from grub.actor.agent import Agent, AgentType
+from grub.actor.steeringbehaviour import BehaviorType
 # from grub.actor.food import Food
 
 AGENT_SPAWN_INTERVAL_SECONDS = 0.4
@@ -25,6 +26,8 @@ class GameplayView(View):
         ### CONTROL
         self.start_time = time.time()
         self.last_agent_spawn_time = time.time()
+        self.last_flee_agent_spawn_time = time.time()
+        self.last_seek_agent_spawn_time = time.time()
 
         self.paused = False
         self.escape_pressed_time = None
@@ -66,14 +69,31 @@ class GameplayView(View):
             return
 
         # every 10 seconds...
-        if time.time() > self.last_agent_spawn_time + AGENT_SPAWN_INTERVAL_SECONDS:
-            self.last_agent_spawn_time = time.time()
-            self.spawn_agent()
+        if time.time() > self.last_flee_agent_spawn_time + AGENT_SPAWN_INTERVAL_SECONDS:
+            self.last_flee_agent_spawn_time = time.time()
+            self.spawn_flee_agent()
+
+        if time.time() > self.last_seek_agent_spawn_time + AGENT_SPAWN_INTERVAL_SECONDS * 10:
+            self.last_seek_agent_spawn_time = time.time()
+            self.spawn_seek_agent()
+
 
         self.handle_cooldown_keys()
-        self.actor_group.update()
+        # player_rect = self.player.texture.get_rect()
+        self.actor_group.update(player=self.player)
         self.player.update()
 
+        collisions = pygame.sprite.spritecollide(self.player, self.actor_group, False, pygame.sprite.collide_mask)
+        for agent in collisions:
+            logger.info("Player collided with agent")
+            # agent.dead = True
+            self.actor_group.remove(agent)
+            del agent
+
+        # for agent in self.actor_group:
+        #     if agent.dead:
+        #         self.actor_group.remove(agent)
+        #         del agent
 
 
 
@@ -137,6 +157,15 @@ class GameplayView(View):
 
             if self.paused:
                 return
+            
+            if event.key == pygame.K_z:
+                self.spawn_seek_agent()
+            elif event.key == pygame.K_x:
+                self.spawn_flee_agent()
+
+            if event.key == pygame.K_SPACE:
+                # self.player.fire()
+                self.actor_group = pygame.sprite.Group()
 
             self.handle_cooldown_keys(event.key)
         elif event.type == pygame.KEYUP:
@@ -192,12 +221,12 @@ class GameplayView(View):
             self.player.acceleration.x += 1
 
 
-    def spawn_agent(self):
-        # TODO
-        agent = Agent()
-        agent.position.x = random.randint(0, SCREEN_WIDTH)
-        agent.position.y = random.randint(0, SCREEN_HEIGHT)
-        agent.velocity.x = random.randint(-2, 2)
-        agent.velocity.y = random.randint(-2, 2)
+    def spawn_flee_agent(self):
+        agent = Agent(AgentType.Shrimp)
+        agent.target = self.player
+        self.actor_group.add(agent)
+
+    def spawn_seek_agent(self):
+        agent = Agent(AgentType.Crab)
         agent.target = self.player
         self.actor_group.add(agent)

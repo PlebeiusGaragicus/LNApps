@@ -29,18 +29,21 @@ WALL_BOUNCE_ATTENUATION = 0.80
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        # self.size = pygame.Vector2(50, 50)  # Use Vector2 for size as well
-        # self.size = 50
-        self.texture = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'snakehead.PNG')).convert_alpha()
-        self.size = pygame.Vector2(self.texture.get_size())
-        # self.texture = pygame.transform.scale(self.texture, (int(self.size.x), int(self.size.y)))  # Scale texture to size
+        self.position = pygame.Vector2(SNAKE_STARTING_POS)  # Use Vector2 for position
+        self.velocity = pygame.Vector2(1, 1)  # Use Vector2 for velocity
+        self.acceleration = pygame.Vector2(0, 0)  # Use Vector2 for acceleration
+
+        self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'snakehead.PNG')).convert_alpha()
+        self.size = pygame.Vector2(self.image.get_size())
+        # self.rect = self.image.get_rect()
+        self.rect = self.image.get_rect(topleft=self.position) # <-- this is the key to getting the collision detection bounding box to move with the sprite
+        # self.image = pygame.transform.scale(self.image, (int(self.size.x), int(self.size.y)))  # Scale image to size
+        self.mask = pygame.mask.from_surface(self.image)
+
 
         self.life = 100
         self.last_life_loss = time.time()
 
-        self.position = pygame.Vector2(SNAKE_STARTING_POS)  # Use Vector2 for position
-        self.velocity = pygame.Vector2(1, 1)  # Use Vector2 for velocity
-        self.acceleration = pygame.Vector2(0, 0)  # Use Vector2 for acceleration
 
     def update(self):
         if time.time() > self.last_life_loss + 1:
@@ -60,14 +63,19 @@ class Player(pygame.sprite.Sprite):
 
         self.bounce_off_walls(attenuate=True)
 
+        self.rect.topleft = self.position # <-- this is the key to getting the collision detection bounding box to move with the sprite
+
 
     def draw(self):
-        # rotate the texture
-        texture = pygame.transform.rotate(self.texture, self.velocity.angle_to(pygame.Vector2(0, -1)))
-        APP_SCREEN.blit(texture, (int(self.position.x), int(self.position.y)))
+        # rotate the image
+        _img = pygame.transform.rotate(self.image, self.velocity.angle_to(pygame.Vector2(0, -1)))
+        APP_SCREEN.blit(_img, (int(self.position.x), int(self.position.y)))
 
         self.draw_velocity_overlay()
         self.draw_life_bar()
+
+        # draw the collision detection bounding box
+        # pygame.draw.rect(APP_SCREEN, Colors.WHITE, self.rect, 2)
 
 
     def draw_velocity_overlay(self):
