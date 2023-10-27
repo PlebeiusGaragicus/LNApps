@@ -117,6 +117,8 @@ class GameplayView(View):
         self.player.draw_life_bar()
         text(APP_SCREEN, f"Score: {self.score}", (SCREEN_WIDTH // 2, 20), font_size=40, color=arcade_color.YELLOW_ORANGE, center=True)
 
+        # self.draw_effects()
+
         if debug.DRAW_STATS:
             # fps = f"FPS: {App.get_instance().fps:.0f}"
             fps = f"FPS: {App.get_instance().clock.get_fps():.0f}"
@@ -141,6 +143,17 @@ class GameplayView(View):
                 App.get_instance().viewmanager.run_view("main_menu")
             else:
                 self.draw_timer_wheel(time_elapsed)
+
+    def draw_effects(self):
+        """ TODO: look into a damage vignette effect here: https://stackoverflow.com/questions/56333344/how-to-create-a-taken-damage-red-vignette-effect-in-pygame
+        """
+
+        fade_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        fade_surface.fill((0, 0, 0, 128))
+        APP_SCREEN.blit(fade_surface, (0, 0))
+        # draw a circle centered on player will full alpha
+        pygame.draw.circle(APP_SCREEN, (0,0,0,0), self.player.position, 100, 100)
+
 
 
     def draw_playfield_boarder(self):
@@ -259,26 +272,38 @@ class GameplayView(View):
 
 
 
-    def spawn_flee_agent(self): # SHRIMP
+     # FLEE PLAYER
+    def spawn_flee_agent(self, hide_out_of_sight: bool = False):
         agent = Agent(AgentType.Shrimp)
         agent.target = self.player
+        agent.hide_out_of_sight = hide_out_of_sight
         self.actor_group.add(agent)
 
-    def spawn_seek_agent(self): # CRAB
+     # SEEK PLAYER
+    def spawn_seek_agent(self, hide_out_of_sight: bool = False):
         agent = Agent(AgentType.Crab)
         agent.target = self.player
+        agent.hide_out_of_sight = hide_out_of_sight
         self.actor_group.add(agent)
 
-    def spawn_dot_agent(self): # DOT
+     # FLEE PLAYER
+    def spawn_dot_agent(self, hide_out_of_sight: bool = False):
         agent = Agent(AgentType.Dot)
         agent.target = self.player
+        agent.hide_out_of_sight = hide_out_of_sight
+        self.actor_group.add(agent)
+
+    # PURSUE PLAYER
+    def spawn_octopus_agent(self, hide_out_of_sight: bool = False):
+        agent = Agent(AgentType.Octopus)
+        agent.target = self.player
+        agent.hide_out_of_sight = hide_out_of_sight
         self.actor_group.add(agent)
 
 
     def handle_collisions(self):
         collisions = pygame.sprite.spritecollide(self.player, self.actor_group, False, pygame.sprite.collide_mask)
         for agent in collisions:
-            # logger.info("Player collided with agent")
             # agent.dead = True
             if agent.type == AgentType.Dot:
                 AUDIO.dink()
@@ -302,14 +327,16 @@ class GameplayView(View):
         # LIFE_SUCK_RATE = 1
         # AGENT_SPAWN_INTERVAL_SECONDS = 0.05
         # MAX_AGENTS = 1200
+        hide_out_of_sight = False
+
         while len(self.actor_group) < MAX_AGENTS:
             if random.randint(1, 100) <= 5: # 5% chance:
-                self.spawn_seek_agent()
+                self.spawn_seek_agent( hide_out_of_sight )
             else:
                 if random.randint(1, 100) <= 50: # 50% chance:
-                    self.spawn_flee_agent()
+                    self.spawn_flee_agent( hide_out_of_sight )
                 else:
-                    self.spawn_dot_agent()
+                    self.spawn_dot_agent( hide_out_of_sight )
         
 
         self.handle_collisions()

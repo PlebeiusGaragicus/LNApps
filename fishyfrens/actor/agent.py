@@ -58,7 +58,7 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
 
         self.type = type
         if type == AgentType.Dot:
-            self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'dotfish.PNG')).convert_alpha()
+            self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'dotfish.png')).convert_alpha()
             SteeringBehaviour.__init__(self,
                                        mass=1,
                                        position=position,
@@ -116,6 +116,7 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
         self.mask = pygame.mask.from_surface(self.image)
 
         # self.invisible = False
+        self.hide_out_of_sight = False
         self.dead = False
 
 
@@ -168,6 +169,11 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
     #         pygame.draw.rect(APP_SCREEN, Colors.WHITE, self.rect, 2)
 
     def draw(self):
+        # only show agents within "sight" of the player
+        if self.hide_out_of_sight:
+            if self.position.distance_to(self.target.position) > self.max_sight:
+                return
+
         angle = self.velocity.angle_to(self.image_orientation)
         rotated_image = pygame.transform.rotate(self.image, angle)
 
