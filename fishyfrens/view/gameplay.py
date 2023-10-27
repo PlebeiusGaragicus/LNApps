@@ -123,7 +123,7 @@ class GameplayView(View):
             # speed = math.trunc(self.player.velocity.magnitude())
             # speed = math.ceil(self.player.velocity.magnitude())
             # round speed to nearest whole number
-            speed = round(self.player.velocity.magnitude())
+            speed = round(self.player.velocity.magnitude(), 1)
             text(APP_SCREEN, f"speed: {speed}", (SCREEN_WIDTH // 2, 60), font_size=20, color=arcade_color.YELLOW_ORANGE, center=True)
             text(APP_SCREEN, fps, (SCREEN_WIDTH // 2, 80), font_size=20, color=arcade_color.YELLOW_ORANGE, center=True)
 

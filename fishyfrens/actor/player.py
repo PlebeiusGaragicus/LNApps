@@ -96,7 +96,6 @@ class Player(pygame.sprite.Sprite):
         if self.velocity.magnitude() > PLAYER_TOP_SPEED + speed_boost:
             self.velocity = self.velocity.normalize() * (PLAYER_TOP_SPEED + speed_boost)
 
-        print( self.velocity.magnitude() )
 
         self.position += self.velocity
         self.bounce_off_walls(attenuate=True)
@@ -210,19 +209,19 @@ class Player(pygame.sprite.Sprite):
     def bounce_off_walls(self, attenuate: bool = False):
         # TODO - this is poor collision detection, but it works for now
         if self.position.x < BORDER_WIDTH:
-            self.velocity.x = abs(self.velocity.x) * WALL_BOUNCE_ATTENUATION if attenuate else abs(self.velocity.x)
+            self.velocity.x = abs(self.velocity.x) * PLAYER_WALL_BOUNCE_ATTENUATION if attenuate else abs(self.velocity.x)
             self.position.x = BORDER_WIDTH
 
         if self.position.x > PLAYFIELD_WIDTH - BORDER_WIDTH - self.size.x // 2:
-            self.velocity.x = -abs(self.velocity.x) * WALL_BOUNCE_ATTENUATION if attenuate else -abs(self.velocity.x)
+            self.velocity.x = -abs(self.velocity.x) * PLAYER_WALL_BOUNCE_ATTENUATION if attenuate else -abs(self.velocity.x)
             self.position.x = PLAYFIELD_WIDTH - BORDER_WIDTH - self.size.x // 2
 
         if self.position.y < BORDER_WIDTH:
-            self.velocity.y = abs(self.velocity.y) * WALL_BOUNCE_ATTENUATION if attenuate else abs(self.velocity.y)
+            self.velocity.y = abs(self.velocity.y) * PLAYER_WALL_BOUNCE_ATTENUATION if attenuate else abs(self.velocity.y)
             self.position.y = BORDER_WIDTH
 
         if self.position.y > PLAYFIELD_HEIGHT - BORDER_WIDTH - self.size.y // 2:
-            self.velocity.y = -abs(self.velocity.y) * WALL_BOUNCE_ATTENUATION if attenuate else -abs(self.velocity.y)
+            self.velocity.y = -abs(self.velocity.y) * PLAYER_WALL_BOUNCE_ATTENUATION if attenuate else -abs(self.velocity.y)
             self.position.y = PLAYFIELD_HEIGHT - BORDER_WIDTH - self.size.y // 2
 
     def adjust_life(self, amount: int):

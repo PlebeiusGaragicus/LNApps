@@ -206,16 +206,16 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
     def bounce_off_walls(self, attenuate: bool = True) -> None:
         if self.position.x < 0:
             self.position.x = 0
-            self.velocity.x *= -WALL_BOUNCE_ATTENUATION if attenuate else -1
+            self.velocity.x *= -AGENT_WALL_BOUNCE_ATTENUATION if attenuate else -1
         if self.position.x > PLAYFIELD_WIDTH - self.size.x:
             self.position.x = PLAYFIELD_WIDTH - self.size.x
-            self.velocity.x *= -WALL_BOUNCE_ATTENUATION if attenuate else -1
+            self.velocity.x *= -AGENT_WALL_BOUNCE_ATTENUATION if attenuate else -1
         if self.position.y < 0:
             self.position.y = 0
-            self.velocity.y *= -WALL_BOUNCE_ATTENUATION if attenuate else -1
+            self.velocity.y *= -AGENT_WALL_BOUNCE_ATTENUATION if attenuate else -1
         if self.position.y > PLAYFIELD_WIDTH - self.size.y:
             self.position.y = PLAYFIELD_WIDTH - self.size.y
-            self.velocity.y *= -WALL_BOUNCE_ATTENUATION if attenuate else -1
+            self.velocity.y *= -AGENT_WALL_BOUNCE_ATTENUATION if attenuate else -1
 
 
 
