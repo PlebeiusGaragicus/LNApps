@@ -8,13 +8,14 @@ import random
 
 # from gamelib.globals import *
 from gamelib.globals import APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
-from gamelib.colors import Colors, arcade_colors
+from gamelib.colors import Colors, arcade_color
 from gamelib.viewstate import View
 from gamelib.menuaction import MenuAction
 
 # from grub.app import App, APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
 from grub.app import App
 from grub.config import *
+from grub.audio import AUDIO
 
 
 
@@ -24,10 +25,11 @@ class MainMenuView(View):
         self.last_input = time.time()
 
         self.menu_action = []
-        self.menu_action.append( MenuAction("Start Game", self.start_game) )
-        self.menu_action.append( MenuAction("Purchase Power-up", None) )
-        self.menu_action.append( MenuAction("Options", None) )
-        self.menu_action.append( MenuAction("Exit", App.get_instance().stop ) )
+        self.menu_action.append( MenuAction("Play Fishy", self.start_game) )
+        # self.menu_action.append( MenuAction("Start Game", self.start_game) )
+        # self.menu_action.append( MenuAction("Purchase Power-up", None) )
+        # self.menu_action.append( MenuAction("Options", None) )
+        self.menu_action.append( MenuAction("Quit", App.get_instance().stop ) )
         self.menu_selected_item = 0
 
 
@@ -44,12 +46,14 @@ class MainMenuView(View):
 
 
     def start_game(self):
+        pygame.mixer.music.stop()
         App.get_instance().viewmanager.run_view("gameplay")
 
 
     def setup(self):
-        # print(f"{self.__class__.__name__} setup")
-        pass
+        # AUDIO.background_music.play(loops=-1)
+        pygame.mixer.music.play(-1)
+
 
 
     def update(self):
@@ -98,7 +102,7 @@ class MainMenuView(View):
                 # TODO - draw long semi-transparent rectangle behind the text
             else:
                 yoff = 0
-                color = arcade_colors.AIR_FORCE_BLUE
+                color = arcade_color.AIR_FORCE_BLUE
                 menu_item_text = self.font_sm.render(menu_item.name, True, color)
 
             # menu_item_text_rect = menu_item_text.get_rect(center=(x, y + i * 80))

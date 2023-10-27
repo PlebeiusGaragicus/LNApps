@@ -1,52 +1,22 @@
-import os
 import time
 import random
-import math
 import logging
 logger = logging.getLogger()
 
 import pygame
 
-from gamelib.colors import Colors
+from gamelib.colors import Colors, arcade_color
 from gamelib.globals import APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
 from gamelib.cooldown_keys import CooldownKey, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT
 from gamelib.viewstate import View
+from gamelib.text import text
 
-# from grub.config import HOLD_TO_QUIT_SECONDS, COOLDOWN_DIRECTIONAL_SECONDS
 from grub.config import *
-from grub.app import MY_DIR
+from grub.app import App
 from grub.actor.player import Player
 from grub.actor.agent import Agent, AgentType
-from grub.actor.steeringbehaviour import BehaviorType
 from grub.view.camera import CAMERA
-
-
-class SoundMaster:
-    def __init__(self):
-        self.background_music = pygame.mixer.music.load( os.path.join(MY_DIR, 'resources', 'sounds', 'epic-background.wav') )
-        self.dink_effect = pygame.mixer.Sound( os.path.join(MY_DIR, 'resources', 'sounds', 'dink_short.wav') )
-        self.oww_effect1 = pygame.mixer.Sound( os.path.join(MY_DIR, 'resources', 'sounds', 'oww1.wav') )
-        self.oww_effect2 = pygame.mixer.Sound( os.path.join(MY_DIR, 'resources', 'sounds', 'oww2.wav') )
-        self.oww_effect3 = pygame.mixer.Sound( os.path.join(MY_DIR, 'resources', 'sounds', 'oww3.wav') )
-
-        # pygame.mixer.music.play(-1)  # The -1 means the music will loop indefinitely
-
-    def dink(self):
-        self.dink_effect.play()
-    
-    def oww(self):
-        # 50 percent chance:
-        r = random.randint(1, 3)
-        if r == 1:
-            self.oww_effect1.play()
-        elif r == 2:
-            self.oww_effect2.play()
-        elif r == 3:
-            self.oww_effect3.play()
-
-
-AUDIO = SoundMaster()
-
+from grub.audio import AUDIO
 
 
 
@@ -54,15 +24,7 @@ class GameplayView(View):
     def __init__(self):
         super().__init__()
 
-        ### CONTROL
-        self.start_time = time.time()
-        self.last_agent_spawn_time = time.time()
-        self.last_flee_agent_spawn_time = time.time()
-        self.last_seek_agent_spawn_time = time.time()
-
-        self.paused = False
-        self.escape_pressed_time = None
-        self.alive = True
+        # NOTE: put static things here that don't need to be reset when the game is reset
         self.cooldown_keys: dict[CooldownKey] = {
             # KEY_UP: CooldownKey(pygame.K_w, COOLDOWN_DIRECTIONAL_SECONDS),
             # KEY_DOWN: CooldownKey(pygame.K_s, COOLDOWN_DIRECTIONAL_SECONDS),
@@ -74,44 +36,40 @@ class GameplayView(View):
             KEY_RIGHT: CooldownKey(pygame.K_RIGHT, COOLDOWN_DIRECTIONAL_SECONDS),
         }
 
-        ### UI
-        self.border_width = 6
 
-        ### AGENTS
-        # self.camera = Camera()
+    def setup(self):
+        # NOTE: This is called when the view is switched to, so it's a good place to reset things
+        # we can also use this to setup the view the first time it's run instead of in __init__()
+
+        self.start_time = time.time()
+        self.last_agent_spawn_time = time.time()
+        self.last_flee_agent_spawn_time = time.time()
+        self.last_seek_agent_spawn_time = time.time()
+
+        self.paused = False
+        self.escape_pressed_time = None
+        self.alive = True
+
         self.player: Player = Player()
         CAMERA.target = self.player
         self.actor_group = pygame.sprite.Group()
-
-
-    def revive(self):
-        self.player.alive = True
-        self.player.life = 100
 
         for key in self.cooldown_keys.values():
             key.reset()
 
 
-    def setup(self):
-        pass
-
-
     def update(self):
         if self.player.life <= 0 or self.alive is False:
-            from grub.view.results import ResultsView
-            next_view = ResultsView(self)
-            self.window.show_view(next_view)
+            App.get_instance().viewmanager.run_view("results")
 
         if self.paused:
             return
 
         while len(self.actor_group) < MAX_AGENTS:
-            # ten percent chance:
-            if random.randint(1, 100) <= 10:
+            if random.randint(1, 100) <= 5: # 5% chance:
                 self.spawn_seek_agent()
             else:
-                # 50 percent chance:
-                if random.randint(1, 100) <= 50:
+                if random.randint(1, 100) <= 50: # 50% chance:
                     self.spawn_flee_agent()
                 else:
                     self.spawn_dot_agent()
@@ -125,16 +83,15 @@ class GameplayView(View):
         #     self.last_seek_agent_spawn_time = time.time()
         #     self.spawn_seek_agent()
 
-
         self.handle_cooldown_keys()
-        # player_rect = self.player.texture.get_rect()
+
         # self.actor_group.update(player=self.player)
         self.actor_group.update()
         self.player.update()
 
         collisions = pygame.sprite.spritecollide(self.player, self.actor_group, False, pygame.sprite.collide_mask)
         for agent in collisions:
-            logger.info("Player collided with agent")
+            # logger.info("Player collided with agent")
             # agent.dead = True
             if agent.type == AgentType.Dot:
                 AUDIO.dink()
@@ -145,12 +102,11 @@ class GameplayView(View):
             elif agent.type == AgentType.Crab:
                 self.player.adjust_life(-10)
                 AUDIO.oww()
-                pass
 
+            # TODO: let's call a callback in order to do cool things before we destroy the agent.
             self.actor_group.remove(agent)
             del agent
 
-        # self.camera.update( self.player )
         CAMERA.update()
 
 
@@ -166,62 +122,51 @@ class GameplayView(View):
         # draw a line from 0,0 to 0, screen height using pygame
         _start = pygame.Vector2(-CAMERA.offset.x, -CAMERA.offset.y)
         _end = pygame.Vector2(-CAMERA.offset.x, -CAMERA.offset.y + PLAYFIELD_HEIGHT)
-        # pygame.draw.line(APP_SCREEN, Colors.GREEN, (0, 0), (0, SCREEN_HEIGHT), self.border_width)
-        pygame.draw.line(APP_SCREEN, Colors.GREEN, _start, _end, self.border_width)
+        pygame.draw.line(APP_SCREEN, Colors.MAGENTA, _start, _end, BORDER_WIDTH)
 
         # draw a line from 0,0 to screen width, 0 using pygame
         _start = pygame.Vector2(-CAMERA.offset.x, -CAMERA.offset.y)
         _end = pygame.Vector2(-CAMERA.offset.x + PLAYFIELD_WIDTH, -CAMERA.offset.y)
-        pygame.draw.line(APP_SCREEN, Colors.GREEN, _start, _end, self.border_width)
+        pygame.draw.line(APP_SCREEN, Colors.MAGENTA, _start, _end, BORDER_WIDTH)
 
         # draw a line from screen width, 0 to screen width, screen height using pygame
         _start = pygame.Vector2(-CAMERA.offset.x + PLAYFIELD_WIDTH, -CAMERA.offset.y)
         _end = pygame.Vector2(-CAMERA.offset.x + PLAYFIELD_WIDTH, -CAMERA.offset.y + PLAYFIELD_HEIGHT)
-        pygame.draw.line(APP_SCREEN, Colors.GREEN, _start, _end, self.border_width)
+        pygame.draw.line(APP_SCREEN, Colors.MAGENTA, _start, _end, BORDER_WIDTH)
 
         # draw a line from 0, screen height to screen width, screen height using pygame
         _start = pygame.Vector2(-CAMERA.offset.x, -CAMERA.offset.y + PLAYFIELD_HEIGHT)
         _end = pygame.Vector2(-CAMERA.offset.x + PLAYFIELD_WIDTH, -CAMERA.offset.y + PLAYFIELD_HEIGHT)
-        pygame.draw.line(APP_SCREEN, Colors.GREEN, _start, _end, self.border_width)
+        pygame.draw.line(APP_SCREEN, Colors.MAGENTA, _start, _end, BORDER_WIDTH)
 
-
-        # show life in top left corner
-        # TODO
-        # arcade.draw_text(f"Life: {self.player.life}", 10, SCREEN_HEIGHT * 0.9, arcade.color.WHITE, font_size=20, anchor_x="left")
-
-        # show player x and y direction
-        # TODO
-        # arcade.draw_text(f"dir_x: {self.player.speed_x} / dir_y: {self.player.speed_y}", SCREEN_WIDTH // 2, SCREEN_HEIGHT * 0.9, arcade.color.YELLOW, font_size=20, anchor_x="center")
 
         # show pressed keys
         pressed_keys = []
         for key, cooldown_key in self.cooldown_keys.items():
             if cooldown_key.pressed:
                 pressed_keys.append(key)
-        # TODO
+
+        # TODO - toggle extra stats on screen
         # arcade.draw_text(f"Pressed keys: {pressed_keys}", SCREEN_WIDTH - 10, SCREEN_HEIGHT * 0.9, arcade.color.WHITE, font_size=20, anchor_x="right")
 
-
-        # self.actor_group.draw(APP_SCREEN) # TODO: hmm... this doesn't work
         for a in self.actor_group:
             a.draw()
 
-        # self.player.draw_hit_box(arcade.color.BLUE)
-        # self.player.draw( self.camera )
         self.player.draw()
 
+
         if self.paused:
-            pass
-            # draw pause screen
-            # TODO
-            # arcade.draw_rectangle_filled(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT, arcade.color.BLACK_OLIVE + (200,))
-            # arcade.draw_text("PAUSED", SCREEN_WIDTH / 2, SCREEN_HEIGHT * 0.75, arcade.color.YELLOW_ROSE, font_size=60, anchor_x="center", anchor_y="center")
+            fade_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+            fade_surface.fill((0, 0, 0, 128))
+            APP_SCREEN.blit(fade_surface, (0, 0))
+            text(APP_SCREEN, "PAUSED", (SCREEN_WIDTH / 2, SCREEN_HEIGHT * 0.3), color=arcade_color.YELLOW_ROSE, font_size=100, center=True)
 
         if self.escape_pressed_time is not None:
             time_elapsed = time.time() - self.escape_pressed_time
             if time_elapsed >= HOLD_TO_QUIT_SECONDS:
-                self.alive = False
-                self.escape_pressed_time = None
+                # self.alive = False
+                # self.escape_pressed_time = None
+                App.get_instance().viewmanager.run_view("main_menu")
             else:
                 self.draw_timer_wheel(time_elapsed)
 
@@ -250,7 +195,7 @@ class GameplayView(View):
 
             self.handle_cooldown_keys(event.key)
         elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_ESCAPE:
+            if event.key == pygame.K_BACKSPACE:
                 self.escape_pressed_time = None
                 self.paused = False
 
@@ -263,8 +208,8 @@ class GameplayView(View):
 
 
     def draw_timer_wheel(self, time_elapsed):
-        center_x = self.window.width // 2
-        center_y = self.window.height * 0.5
+        center_x = SCREEN_WIDTH // 2
+        center_y = SCREEN_HEIGHT * 0.5
         radius = 100
 
         start_angle = 360
@@ -273,12 +218,12 @@ class GameplayView(View):
         # TODO: twine between colors as time elapses
         # arcade.draw_arc_filled(center_x, center_y, radius, radius, arcade.color.WHITE, end_angle, start_angle, 90)
         # arcade.draw_text(f"Hold <ESCAPE> to quit", center_x, center_y - radius, arcade.color.WHITE_SMOKE, font_size=20, anchor_x="center", anchor_y="center")
-        pygame.draw.arc(APP_SCREEN, Colors.WHITE, (center_x - radius, center_y - radius, radius * 2, radius * 2), start_angle, end_angle, 90)
-        font = pygame.font.SysFont(None, 20)
-        text = font.render("Hold <ESCAPE> to quit", True, pygame.Color("WHITE_SMOKE"))
+        # pygame.draw.arc(APP_SCREEN, Colors.WHITE, (center_x - radius, center_y - radius, radius * 2, radius * 2), start_angle, end_angle, 90)
+        font = pygame.font.SysFont(None, 70)
+        text = font.render("Hold <ESCAPE> to quit", True, arcade_color.WHITE_SMOKE)
         text_rect = text.get_rect(center=(center_x, center_y - radius))
         APP_SCREEN.blit(text, text_rect)
-
+        pygame.draw.arc(APP_SCREEN, Colors.RED, (center_x - radius, center_y - radius, radius * 2, radius * 2), start_angle, end_angle, 90)
 
 
 
@@ -286,20 +231,14 @@ class GameplayView(View):
         # NOTE: these can't be elif becuase this is also run in on_update() and it needs to process every one of these
 
         if self.cooldown_keys[KEY_UP].run(key=key):
-            # self.player.change_speed_cap(y_delta=-1)
-            self.player.acceleration.y += -1
-
+            self.player.acceleration.y += -PLAYER_ACCELERATION
         if self.cooldown_keys[KEY_DOWN].run(key=key):
-            # self.player.change_speed_cap(y_delta=1)
-            self.player.acceleration.y += 1
-
+            self.player.acceleration.y += PLAYER_ACCELERATION
         if self.cooldown_keys[KEY_LEFT].run(key=key):
-            # self.player.change_speed_cap(x_delta=-1)
-            self.player.acceleration.x += -1
-
+            self.player.acceleration.x += -PLAYER_ACCELERATION
         if self.cooldown_keys[KEY_RIGHT].run(key=key):
-            # self.player.change_speed_cap(x_delta=1)
-            self.player.acceleration.x += 1
+            self.player.acceleration.x += PLAYER_ACCELERATION
+
 
 
     def spawn_flee_agent(self): # SHRIMP

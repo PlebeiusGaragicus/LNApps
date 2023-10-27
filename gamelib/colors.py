@@ -15,7 +15,7 @@ class Colors:
     MAGENTA = (255, 0, 255)
 
 
-class arcade_colors:
+class arcade_color:
     AERO_BLUE = (201, 255, 229)
     AFRICAN_VIOLET = (178, 132, 190)
     AIR_FORCE_BLUE = (93, 138, 168)

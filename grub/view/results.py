@@ -2,84 +2,87 @@ import time
 import logging
 logger = logging.getLogger()
 
-import arcade
+import pygame
 
+from gamelib.globals import APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
+from gamelib.viewstate import View
 from gamelib.menuaction import MenuAction
-from grub.view.gameplay import GameplayView
+from gamelib.colors import Colors, arcade_color
+from gamelib.text import text
 
-from grub.app import GAME_WINDOW
+from grub.app import App
 from grub.config import AFK_TIMEOUT
+from grub.audio import AUDIO
 
 
-class ResultsView( arcade.View ):
-    def __init__(self, gameplay_view: arcade.View):
+
+class ResultsView( View ):
+    def __init__(self):
         super().__init__()
-        self.afk_timeout = AFK_TIMEOUT # if None, then no timeout
+
         self.last_input = time.time()
 
         self.selected_menu_item = 0
         self.menu_actions = []
-
-        self.menu_actions.append( MenuAction("Revive ($)", self.revive) )
+        self.menu_action = []
+        self.menu_actions.append( MenuAction("Play Again!", self.revive) )
+        # self.menu_actions.append( MenuAction("Revive ($)", self.revive) )
         self.menu_actions.append( MenuAction("Give up", self.main_menu) )
-
-        self.gameplay_view: GameplayView = gameplay_view
 
 
     def revive(self):
-        logger.info("reviving player...!")
-        # self.gameplay_view.player.alive = True
-        # self.gameplay_view.player.life = 100
-        self.gameplay_view.revive()
-        self.window.show_view(self.gameplay_view)
+        AUDIO.you_died_effect.stop()
+        App.get_instance().viewmanager.run_view("gameplay")
 
     def main_menu(self):
-        from grub.view.menu import MenuView
-        next_view = MenuView()
-        self.window.show_view(next_view)
+        AUDIO.you_died_effect.stop()
+        App.get_instance().viewmanager.run_view("main_menu")
 
 
-    def on_show_view(self):
-        arcade.set_background_color(arcade.color.BLACK)
+    def setup(self):
+        # AUDIO.you_died()
+        AUDIO.you_died_effect.play()
 
 
-    def on_update(self, delta_time):
-        if self.afk_timeout is not None:    
-            if time.time() > self.last_input + self.afk_timeout: # self-destruct in ten seconds if no input (user is AFK)
-                logger.warning("AFK timeout reached, exiting game - user is AFK!")
-                self.main_menu()
+    def update(self):
+        if time.time() > self.last_input + AFK_TIMEOUT: # self-destruct in ten seconds if no input (user is AFK)
+            logger.warning("AFK timeout reached, exiting game - user is AFK!")
+            self.main_menu()
 
 
 
-    def on_draw(self):
-        arcade.start_render()
+    def draw(self):
+        APP_SCREEN.fill((0, 0, 0))
 
-        arcade.draw_text("GAME OVER", GAME_WINDOW.width // 2, GAME_WINDOW.height * 0.8, arcade.color.RED, font_size=90, anchor_x="center", bold=True)
+        text(APP_SCREEN, "GAME OVER", (APP_SCREEN.get_width() // 2, APP_SCREEN.get_height() * 0.2), font_size=200, color=Colors.RED, center=True)
 
-        x = GAME_WINDOW.width * 0.1
-        y = GAME_WINDOW.height // 2
+        x = SCREEN_WIDTH * 0.1
+        y = SCREEN_HEIGHT // 2
         for i, menu_item in enumerate(self.menu_actions):
             if i == self.selected_menu_item:
-                color = arcade.color.YELLOW
-                arcade.draw_text(">", x - 30, y - i * 50, color, font_size=30, anchor_x="left")
+                color = arcade_color.YELLOW
+                text(APP_SCREEN, "<", (x + 500, y + i * 100), font_size=90, color=color)
             else:
-                color = arcade.color.AIR_FORCE_BLUE
+                color = arcade_color.AIR_FORCE_BLUE
             # TODO - go for a monospaced font here
-            arcade.draw_text(menu_item.name, x, y - i * 50, color, font_size=30, anchor_x="left", font_name="/Users/myca/arcade-apps/template/resources/Andale Mono.ttf")
+            text(APP_SCREEN, menu_item.name, (x, y + i * 100), font_size=80, color=color)
 
 
-    def on_key_press(self, symbol: int, modifiers: int):
+    def handle_event(self, event):
         self.last_input = time.time()
 
-        if symbol == arcade.key.UP:
-            if self.selected_menu_item > 0:
-                self.selected_menu_item -= 1
-        elif symbol == arcade.key.DOWN:
-            if self.selected_menu_item < len(self.menu_actions) - 1:
-                self.selected_menu_item += 1
+        if event.type == pygame.KEYDOWN:
 
-        elif symbol == arcade.key.ENTER:
-            self.menu_actions[self.selected_menu_item].action()
+            if event.key == pygame.K_UP:
+                if self.selected_menu_item > 0:
+                    self.selected_menu_item -= 1
 
-        elif symbol == arcade.key.ESCAPE:
-            self.main_menu()
+            elif event.key == pygame.K_DOWN:
+                if self.selected_menu_item < len(self.menu_actions) - 1:
+                    self.selected_menu_item += 1
+
+            elif event.key == pygame.K_RETURN:
+                self.menu_actions[self.selected_menu_item].action()
+
+            elif event.key == pygame.K_ESCAPE:
+                self.main_menu()

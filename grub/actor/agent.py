@@ -51,7 +51,7 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
 
         self.type = type
         if type == AgentType.Dot:
-            self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'particle.PNG')).convert_alpha()
+            self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'dotfish.PNG')).convert_alpha()
             SteeringBehaviour.__init__(self,
                                        mass=1,
                                        position=position,
@@ -63,7 +63,8 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
                                        behavior_type=BehaviorType.FLEE)
 
         elif type == AgentType.Shrimp:
-            self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'yellowshot.png')).convert_alpha()
+            r = random.randint(1, 3)
+            self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', f'shrimp{r}.png')).convert_alpha()
             SteeringBehaviour.__init__(self,
                                        mass=1,
                                        position=position,
@@ -75,7 +76,7 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
                                        behavior_type=BehaviorType.FLEE)
 
         elif type == AgentType.Crab:
-            self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'fish_yellow3.png')).convert_alpha()
+            self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'crab.png')).convert_alpha()
             self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * 3), int(self.image.get_height() * 3)))
             self.image_orientation = pygame.Vector2(-1, 1)
 
@@ -85,7 +86,7 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
             SteeringBehaviour.__init__(self,
                                        mass=1,
                                        position=position,
-                                       max_speed=2,
+                                       max_speed=1.7,
                                        max_force=0.3,
                                        velocity=velocity,
                                        decay_rate=1.5,

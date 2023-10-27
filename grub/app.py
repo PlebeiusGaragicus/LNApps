@@ -97,6 +97,8 @@ class App(Singleton):
         app.viewmanager.add_view("main_menu", MainMenuView())
         from grub.view.gameplay import GameplayView
         app.viewmanager.add_view("gameplay", GameplayView())
+        from grub.view.results import ResultsView
+        app.viewmanager.add_view("results", ResultsView())
 
 
         return cls._instance
@@ -105,7 +107,8 @@ class App(Singleton):
     def start(self):
         logger.debug("App.start()")
 
-        self.viewmanager.run_view("gameplay")
+        # self.viewmanager.run_view("gameplay")
+        self.viewmanager.run_view("main_menu")
         # if self.manifest.get('skip_intro', False) == True:
         #     self.viewmanager.run_view("main_menu")
         # else:
@@ -127,6 +130,7 @@ class App(Singleton):
                 self.viewmanager.update()
                 self.viewmanager.draw()
 
+                pygame.display.update() # TODO is this needed?
                 pygame.display.flip()
                 self.clock.tick(FPS)
 
@@ -134,8 +138,8 @@ class App(Singleton):
                 logger.info("KeyboardInterrupt")
                 self.running = False
 
-            except NotImplementedError:
-                logger.critical("NotImplementedError")
+            except NotImplementedError as e:
+                logger.exception(e)
                 self.running = False
 
             except Exception as e:
