@@ -133,26 +133,66 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
         elif self.wall_behavior == BoundaryBehaviour.Wrap:
             self.wrap_screen()
 
+        # self.rect.topleft = self.position # NOTE: this is being done in draw (not sure i even need a rect...) but it also needs to be offset by the camera
+
+        # Update mask for pixel-perfect collision
+        # Note: Only necessary if the sprite's appearance or orientation changes
+        # angle = self.velocity.angle_to(self.image_orientation)
+        # rotated_image = pygame.transform.rotate(self.image, angle)
+        # self.mask = pygame.mask.from_surface(rotated_image)
         self.rect.topleft = self.position
 
+        # Update mask for pixel-perfect collision
+        # Note: Only necessary if the sprite's appearance or orientation changes
+        angle = self.velocity.angle_to(self.image_orientation)
+        rotated_image = pygame.transform.rotate(self.image, angle)
+        self.mask = pygame.mask.from_surface(rotated_image)
 
+
+
+    # def draw(self):
+    #     if debug.DRAW_MASKS:
+    #         _img = pygame.transform.rotate(self.mask.to_surface(), self.velocity.angle_to(self.image_orientation))
+    #         _img.set_colorkey((0, 0, 0))
+    #     else:
+    #         _img = pygame.transform.rotate(self.image, self.velocity.angle_to(self.image_orientation))
+
+    #     _pos = pygame.Vector2(self.position.x - CAMERA.offset.x, self.position.y - CAMERA.offset.y)
+    #     APP_SCREEN.blit(_img, _pos)
+
+    #     if debug.DRAW_VECTORS:
+    #         self.draw_vectors()
+
+    #     if debug.DRAW_RECTS:
+    #         self.rect = self.image.get_rect(topleft=_pos)
+    #         pygame.draw.rect(APP_SCREEN, Colors.WHITE, self.rect, 2)
 
     def draw(self):
+        angle = self.velocity.angle_to(self.image_orientation)
+        rotated_image = pygame.transform.rotate(self.image, angle)
+
+        # Convert world coordinates to screen coordinates
+        screen_pos = self.position - pygame.Vector2(CAMERA.offset)
+
+        # Draw the sprite at its screen position
+        APP_SCREEN.blit(rotated_image, screen_pos)
+
+        # self.rect = self.image.get_rect(topleft=pos)
+
         if debug.DRAW_MASKS:
-            _img = pygame.transform.rotate(self.mask.to_surface(), self.velocity.angle_to(self.image_orientation))
-            _img.set_colorkey((0, 0, 0))
-        else:
-            _img = pygame.transform.rotate(self.image, self.velocity.angle_to(self.image_orientation))
-
-        _pos = pygame.Vector2(self.position.x - CAMERA.offset.x, self.position.y - CAMERA.offset.y)
-        APP_SCREEN.blit(_img, _pos)
-
+            mask_surface = pygame.Surface(rotated_image.get_size(), pygame.SRCALPHA)
+            mask_surface.fill((255, 0, 0, 100))  # Red with alpha transparency
+            mask_surface.blit(rotated_image, (0, 0), None, pygame.BLEND_RGBA_MULT)
+            APP_SCREEN.blit(mask_surface, screen_pos)
+        
         if debug.DRAW_VECTORS:
             self.draw_vectors()
-        
+            
         if debug.DRAW_RECTS:
-            self.rect = self.image.get_rect(topleft=_pos)
-            pygame.draw.rect(APP_SCREEN, Colors.WHITE, self.rect, 2)
+            # Convert the sprite's rect to screen coordinates for drawing
+            screen_rect = self.rect.copy()
+            screen_rect.topleft = screen_pos
+            pygame.draw.rect(APP_SCREEN, Colors.WHITE, screen_rect, 2)
 
 
 

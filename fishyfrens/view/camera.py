@@ -5,8 +5,6 @@ from fishyfrens.view.gameplay import SCREEN_WIDTH, SCREEN_HEIGHT
 
 BUFFER = SCREEN_WIDTH // 3
 
-# def lerp(a, b, t):
-#     return a + (b - a) * t
 
 class Camera:
     def __init__(self):

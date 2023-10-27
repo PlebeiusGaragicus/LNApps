@@ -1,3 +1,3 @@
-DRAW_MASKS = False
-DRAW_VECTORS = True
+DRAW_VECTORS = False
+DRAW_MASKS = True
 DRAW_RECTS = True

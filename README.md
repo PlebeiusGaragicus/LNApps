@@ -31,3 +31,21 @@ ps aux | grep 'Z'
 
 `htop` or `top`
 
+---
+
+appears the cause of the issue is the rsync-sync extension for VS Code
+
+Solution: comment out .vscode/settings.json
+
+Here are the contents for backup:
+
+```json
+{
+    "sync-rsync.remote": "satoshi@lnarcade.local:/home/satoshi/LNApps/",
+    "sync-rsync.onSave": true,
+    "sync-rsync.onSaveIndividual": true,
+    "sync-rsync.options": [],
+    "sync-rsync.sites": [],
+    "sync-rsync.notification": false
+}
+```
