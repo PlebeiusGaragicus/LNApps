@@ -147,6 +147,7 @@ class App(Singleton):
                 logger.exception(e)
                 self.running = False
 
+        print("closing 'properly' ??")
         pygame.quit()
         sys.exit()
 

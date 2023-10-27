@@ -11,6 +11,7 @@ from gamelib.cooldown_keys import CooldownKey, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_R
 from gamelib.viewstate import View
 from gamelib.text import text
 
+from fishyfrens import debug
 from fishyfrens.config import *
 from fishyfrens.app import App
 from fishyfrens.actor.player import Player
@@ -92,7 +93,7 @@ class GameplayView(View):
 
 
     def draw(self):
-        APP_SCREEN.fill(Colors.BLACK)
+        APP_SCREEN.fill( (3, 32, 50) ) # (3, 192, 60) DARK_PASTEL_GREEN
 
         self.draw_playfield_boarder()
 
@@ -165,6 +166,15 @@ class GameplayView(View):
                 self.spawn_seek_agent()
             elif event.key == pygame.K_x:
                 self.spawn_flee_agent()
+            elif event.key == pygame.K_m:
+                # global DRAW_MASKS
+                debug.DRAW_MASKS = not debug.DRAW_MASKS
+            elif event.key == pygame.K_v:
+                # global DRAW_VECTORS
+                debug.DRAW_VECTORS = not debug.DRAW_VECTORS
+            elif event.key == pygame.K_r:
+                # global DRAW_RECTS
+                debug.DRAW_RECTS = not debug.DRAW_RECTS
 
             if event.key == pygame.K_SPACE:
                 # self.player.fire()
@@ -258,6 +268,9 @@ class GameplayView(View):
 
 
     def level1(self):
+        # LIFE_SUCK_RATE = 1
+        # AGENT_SPAWN_INTERVAL_SECONDS = 0.05
+        # MAX_AGENTS = 1200
         while len(self.actor_group) < MAX_AGENTS:
             if random.randint(1, 100) <= 5: # 5% chance:
                 self.spawn_seek_agent()
@@ -272,7 +285,12 @@ class GameplayView(View):
 
 
     def level2(self):
+        global AGENT_SPAWN_INTERVAL_SECONDS
         AGENT_SPAWN_INTERVAL_SECONDS = 1.4
+        global LIFE_SUCK_RATE
+        LIFE_SUCK_RATE = 5
+        global MAX_AGENTS
+        MAX_AGENTS = 2000
 
         if time.time() > self.last_flee_agent_spawn_time + AGENT_SPAWN_INTERVAL_SECONDS:
             self.last_flee_agent_spawn_time = time.time()

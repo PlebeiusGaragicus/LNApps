@@ -49,8 +49,9 @@ class SplashScreenView( View ):
     def draw(self):
         APP_SCREEN.fill((10, 50, 50))
 
-        text(APP_SCREEN, "your friends are...", (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 3), font_size=100, color=arcade_color.CYBER_YELLOW, center=True)
-        text(APP_SCREEN, "Fishy!", (SCREEN_WIDTH // 2, 2 * SCREEN_HEIGHT // 3), font_size=120, color=arcade_color.BLUSH, center=True)
+        text(APP_SCREEN, "your friends are...", (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 4), font_size=100, color=arcade_color.CYBER_YELLOW, center=True)
+        text(APP_SCREEN, "Fishy!", (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2), font_size=120, color=arcade_color.BLUSH, center=True)
+        text(APP_SCREEN, "I'm a fishy... you're a fishy... we're all a little fishy!", (SCREEN_WIDTH // 2, SCREEN_HEIGHT * 0.85), font_size=30, color=arcade_color.BLUE_GREEN, center=True)
 
         if time.time() - self.start_time > MANDITORY_WAIT_SEC:
             pass
