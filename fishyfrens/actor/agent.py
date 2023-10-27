@@ -125,6 +125,15 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
         if self.dead:
             return
 
+        # if agent position is visible on screen given camera offset
+        # NOTE: increases framerate on Dell Wyse from ~10 to ~
+        # TODO: do the same with draw...
+        if self.position.x - CAMERA.offset.x < 100 \
+            or self.position.x - CAMERA.offset.x > SCREEN_WIDTH - 100 \
+                or self.position.y - CAMERA.offset.y < 100 \
+                    or self.position.y - CAMERA.offset.y > SCREEN_HEIGHT - 100:
+            return
+
         # super().update() # this is the SteeringBehaviour update() and isn't working - perhaps because there are multiple inherited classes?
         self.update_steering()
 
