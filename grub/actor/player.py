@@ -31,11 +31,16 @@ class Player(pygame.sprite.Sprite):
         self.velocity_dampening = 0.96
         self.acceleration = pygame.Vector2(0, 0)  # Use Vector2 for acceleration
 
-        self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'snakehead.PNG')).convert_alpha()
+        self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'fish_blue1.png')).convert_alpha()
+        scale_by = 3
+        self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * scale_by), int(self.image.get_height() * scale_by)))
+        self.image = pygame.transform.flip(self.image, True, False)
         self.size = pygame.Vector2(self.image.get_size())
+        self.image_orientation: pygame.Vector2 = pygame.Vector2(1, 0)
+
         # self.rect = self.image.get_rect()
         self.rect = self.image.get_rect(topleft=self.position) # <-- this is the key to getting the collision detection bounding box to move with the sprite
-        # self.image = pygame.transform.scale(self.image, (int(self.size.x), int(self.size.y)))  # Scale image to size
+
         self.mask = pygame.mask.from_surface(self.image)
 
 
@@ -66,7 +71,12 @@ class Player(pygame.sprite.Sprite):
 
     def draw(self):
         # rotate the image
-        _img = pygame.transform.rotate(self.image, self.velocity.angle_to(pygame.Vector2(0, -1)))
+        # _img = pygame.transform.rotate(self.image, self.velocity.angle_to(pygame.Vector2(1, 0.25)))
+        _img = pygame.transform.rotate(self.image, self.velocity.angle_to(self.image_orientation))
+
+        # if velocity is negative, flip the image
+        # if self.velocity.x < 0:
+        #     _img = pygame.transform.flip(_img, False, True)
 
         # pixel location is player pos - camera offset
         _x = int(self.position.x - CAMERA.offset.x)

@@ -1,3 +1,4 @@
+import os
 import time
 import random
 import math
@@ -13,13 +14,33 @@ from gamelib.viewstate import View
 
 # from grub.config import HOLD_TO_QUIT_SECONDS, COOLDOWN_DIRECTIONAL_SECONDS
 from grub.config import *
+from grub.app import MY_DIR
 from grub.actor.player import Player
 from grub.actor.agent import Agent, AgentType
 from grub.actor.steeringbehaviour import BehaviorType
 from grub.view.camera import CAMERA
 
 
+class SoundMaster:
+    def __init__(self):
+        self.background_music = pygame.mixer.music.load( os.path.join(MY_DIR, 'resources', 'sounds', 'epic-background.wav') )
+        self.dink_effect = pygame.mixer.Sound( os.path.join(MY_DIR, 'resources', 'sounds', 'dink_short.wav') )
+        self.oww_effect1 = pygame.mixer.Sound( os.path.join(MY_DIR, 'resources', 'sounds', 'oww.wav') )
+        self.oww_effect2 = pygame.mixer.Sound( os.path.join(MY_DIR, 'resources', 'sounds', 'oww2.wav') )
 
+        # pygame.mixer.music.play(-1)  # The -1 means the music will loop indefinitely
+
+    def dink(self):
+        self.dink_effect.play()
+    
+    def oww(self):
+        # 50 percent chance:
+        if random.randint(1, 100) <= 50:
+            self.oww_effect1.play()
+        else:
+            self.oww_effect2.play()
+
+AUDIO = SoundMaster()
 
 
 
@@ -79,7 +100,6 @@ class GameplayView(View):
         if self.paused:
             return
 
-        # every 10 seconds...
         while len(self.actor_group) < MAX_AGENTS:
             # ten percent chance:
             if random.randint(1, 100) <= 10:
@@ -111,11 +131,15 @@ class GameplayView(View):
         for agent in collisions:
             logger.info("Player collided with agent")
             # agent.dead = True
-            if agent.type == AgentType.Shrimp:
-                # self.player.adjust_life(6)
-                pass
+            if agent.type == AgentType.Dot:
+                AUDIO.dink()
+                self.player.adjust_life(6)
+            elif agent.type == AgentType.Shrimp:
+                AUDIO.dink()
+                self.player.adjust_life(14)
             elif agent.type == AgentType.Crab:
-                # self.player.adjust_life(-10)
+                self.player.adjust_life(-10)
+                AUDIO.oww()
                 pass
 
             self.actor_group.remove(agent)

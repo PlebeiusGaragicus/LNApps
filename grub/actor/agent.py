@@ -47,6 +47,8 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
             random.randint(-1, 1)
         )
 
+        self.image_orientation: pygame.Vector2 = pygame.Vector2(0, -1)
+
         self.type = type
         if type == AgentType.Dot:
             self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'particle.PNG')).convert_alpha()
@@ -61,7 +63,7 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
                                        behavior_type=BehaviorType.FLEE)
 
         elif type == AgentType.Shrimp:
-            self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'yellowshot.PNG')).convert_alpha()
+            self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'yellowshot.png')).convert_alpha()
             SteeringBehaviour.__init__(self,
                                        mass=1,
                                        position=position,
@@ -73,13 +75,13 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
                                        behavior_type=BehaviorType.FLEE)
 
         elif type == AgentType.Crab:
-            self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'purplesquare2.PNG')).convert_alpha()
+            self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'fish_yellow3.png')).convert_alpha()
+            self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * 3), int(self.image.get_height() * 3)))
+            self.image_orientation = pygame.Vector2(-1, 1)
+
             # override the velocity to make the crabs slow
-            velocity = pygame.Vector2(
-                random.randint(-4, 4),
-                random.randint(-4, 4)
-            )
-            velocity /= 10
+            velocity = pygame.Vector2( random.randint(-4, 4), random.randint(-4, 4) ) / 10
+            # velocity /= 10
             SteeringBehaviour.__init__(self,
                                        mass=1,
                                        position=position,
@@ -87,7 +89,7 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
                                        max_force=0.3,
                                        velocity=velocity,
                                        decay_rate=1.5,
-                                       max_sight=90,
+                                       max_sight=300,
                                        behavior_type=BehaviorType.SEEK)
 
         else:
@@ -123,8 +125,8 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
         self.rect.topleft = self.position
 
     def draw(self):
-        image = pygame.transform.rotate(self.image, self.velocity.angle_to(pygame.Vector2(0, -1)))
-        # APP_SCREEN.blit(image, (int(self.position.x), int(self.position.y)))
+        # image = pygame.transform.rotate(self.image, self.velocity.angle_to(pygame.Vector2(0, -1)))
+        image = pygame.transform.rotate(self.image, self.velocity.angle_to(self.image_orientation))
 
         _pos = pygame.Vector2(self.position.x - CAMERA.offset.x, self.position.y - CAMERA.offset.y)
         APP_SCREEN.blit(image, _pos)

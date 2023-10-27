@@ -1,2 +1,7 @@
 arcade
 pygame
+numpy
+icecream
+
+#TODO: This really needs all the requirements of any game it may run....
+# ... so in the README I need to add running `pip install -r ../LNApps/requirements.txt` or something
