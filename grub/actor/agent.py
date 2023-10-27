@@ -35,60 +35,65 @@ class BoundaryBehaviour(enum.Enum):
 
 class Agent(pygame.sprite.Sprite, SteeringBehaviour):
     def __init__(self, type: AgentType):
-        # super().__init__()
         pygame.sprite.Sprite.__init__(self)
-        SteeringBehaviour.__init__(self=self,
-                                   mass=100,
-                                #    position=pygame.Vector2(SNAKE_STARTING_POS),
-                                   position=pygame.Vector2(random.randint(0, SCREEN_WIDTH), random.randint(0, SCREEN_HEIGHT)),
-                                   max_speed=5,
-                                   max_force=0.03,
-                                   velocity=pygame.Vector2(1, 1))
-                                #    heading=pygame.Vector2(1, 1))
+        
+        position = pygame.Vector2(
+            random.randint(SAFE_BUFFER, PLAYFIELD_WIDTH - SAFE_BUFFER),
+            random.randint(SAFE_BUFFER, PLAYFIELD_HEIGHT - SAFE_BUFFER)
+        )
+        
+        velocity = pygame.Vector2(
+            random.randint(-1, 1),
+            random.randint(-1, 1)
+        )
 
         self.type = type
-        self.wall_behavior: BoundaryBehaviour = BoundaryBehaviour.Bounce
-
         if type == AgentType.Dot:
-            self.position.x = random.randint(SAFE_BUFFER, PLAYFIELD_WIDTH - SAFE_BUFFER)
-            self.position.y = random.randint(SAFE_BUFFER, PLAYFIELD_HEIGHT - SAFE_BUFFER)
-            # self.velocity = NULL_VECTOR
-            self.velocity.x = random.randint(-2, 2)
-            self.velocity.y = random.randint(-2, 2)
-            self.max_speed = 3
-            self.max_force = 0.5
-            self.decay_rate = 8
-            # self.distance_sensitivity = 0.0005
-            self.behavior_type = BehaviorType.FLEE
             self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'particle.PNG')).convert_alpha()
+            SteeringBehaviour.__init__(self,
+                                       mass=1,
+                                       position=position,
+                                       max_speed=1.5,
+                                       max_force=0.5,
+                                       velocity=velocity,
+                                       decay_rate=8,
+                                       max_sight=400,
+                                       behavior_type=BehaviorType.FLEE)
+
         elif type == AgentType.Shrimp:
-            # TODO: make a SafeXY() just like grigwars
-            self.position.x = random.randint(SAFE_BUFFER, PLAYFIELD_WIDTH - SAFE_BUFFER)
-            self.position.y = random.randint(SAFE_BUFFER, PLAYFIELD_HEIGHT - SAFE_BUFFER)
-            # self.velocity = NULL_VECTOR
-            self.velocity.x = random.randint(-2, 2)
-            self.velocity.y = random.randint(-2, 2)
-            self.max_speed = 1.5
-            self.max_force = 0.3
-            self.decay_rate = 5
-            # self.distance_sensitivity = 5
-            self.behavior_type = BehaviorType.FLEE
             self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'yellowshot.PNG')).convert_alpha()
+            SteeringBehaviour.__init__(self,
+                                       mass=1,
+                                       position=position,
+                                       max_speed=1.1,
+                                       max_force=0.3,
+                                       velocity=velocity,
+                                       decay_rate=5,
+                                       max_sight=400,
+                                       behavior_type=BehaviorType.FLEE)
+
         elif type == AgentType.Crab:
-            self.position.x = random.randint(SAFE_BUFFER, PLAYFIELD_WIDTH - SAFE_BUFFER)
-            self.position.y = random.randint(SAFE_BUFFER, PLAYFIELD_HEIGHT - SAFE_BUFFER)
-            # self.velocity = NULL_VECTOR
-            self.velocity.x = random.randint(-2, 2)
-            self.velocity.y = random.randint(-2, 2)
-            self.max_speed  = 2
-            self.max_force  = 0.3
-            self.decay_rate = 1.5
-            self.max_sight = 90
-            # self.distance_sensitivity = 2.4
-            self.behavior_type = BehaviorType.SEEK
             self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'purplesquare2.PNG')).convert_alpha()
+            # override the velocity to make the crabs slow
+            velocity = pygame.Vector2(
+                random.randint(-4, 4),
+                random.randint(-4, 4)
+            )
+            velocity /= 10
+            SteeringBehaviour.__init__(self,
+                                       mass=1,
+                                       position=position,
+                                       max_speed=2,
+                                       max_force=0.3,
+                                       velocity=velocity,
+                                       decay_rate=1.5,
+                                       max_sight=90,
+                                       behavior_type=BehaviorType.SEEK)
+
         else:
             raise Exception(f"Unknown AgentType: {type}")
+
+        self.wall_behavior: BoundaryBehaviour = BoundaryBehaviour.Bounce
     
 
         # self.image.set_colorkey((0, 0, 0))

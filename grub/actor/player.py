@@ -28,6 +28,7 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.position = pygame.Vector2(PLAYER_STARTING_POS)  # Use Vector2 for position
         self.velocity = pygame.Vector2(1, 1)  # Use Vector2 for velocity
+        self.velocity_dampening = 0.96
         self.acceleration = pygame.Vector2(0, 0)  # Use Vector2 for acceleration
 
         self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'snakehead.PNG')).convert_alpha()
@@ -51,7 +52,7 @@ class Player(pygame.sprite.Sprite):
 
         self.velocity += self.acceleration
         self.acceleration *= 0.4
-        self.velocity *= 0.98
+        self.velocity *= self.velocity_dampening
 
         self.velocity.x = max(-TOP_SPEED, min(TOP_SPEED, self.velocity.x))
         self.velocity.y = max(-TOP_SPEED, min(TOP_SPEED, self.velocity.y))
@@ -73,7 +74,7 @@ class Player(pygame.sprite.Sprite):
         # print(f"player pos: {self.position}, camera offset: {CAMERA.offset}, draw pos: ({_x}, {_y})")
         APP_SCREEN.blit(_img, (_x, _y))
 
-        self.draw_velocity_overlay()
+        # self.draw_velocity_overlay()
         self.draw_life_bar()
 
         # draw the collision detection bounding box
@@ -87,10 +88,11 @@ class Player(pygame.sprite.Sprite):
 
 
     def draw_life_bar(self):
-        life_bar_width = 100
-        life_bar_height = 10
-        life_bar_x = SCREEN_WIDTH - life_bar_width - 10
-        life_bar_y = 10
+        life_bar_width = 200
+        life_bar_height = 20
+        # life_bar_x = SCREEN_WIDTH - life_bar_width - 10
+        life_bar_x = 20
+        life_bar_y = 20
 
         life_bar_rect = pygame.Rect(life_bar_x, life_bar_y, life_bar_width, life_bar_height)
         pygame.draw.rect(APP_SCREEN, Colors.WHITE, life_bar_rect, 2)

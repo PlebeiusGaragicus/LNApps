@@ -32,42 +32,39 @@ class BehaviorType:
 
 
 class SteeringBehaviour:
-    mass: int = None
-    position: pygame.Vector2 = None
-    max_speed: int = None
-    max_force: int = None
-    velocity: pygame.Vector2 = None
-
-    # 1.0 is no decay, 0.0 is instant decay
-    decay_rate: float = None
-    # heading: pygame.Vector2 = None
+    # mass: int = None
+    # position: pygame.Vector2 = None
+    # max_speed: int = None
+    # max_force: int = None
+    # velocity: pygame.Vector2 = None
+    # decay_rate: float = None
 
     def __init__(self,
                  mass: int,
-                 position:
-                 pygame.Vector2,
+                 position: pygame.Vector2,
                  max_speed: int,
                  max_force: int,
                  velocity: pygame.Vector2,
-                #  heading: pygame.Vector2,
-                 behavior_type: BehaviorType = BehaviorType.NONE):
-        self.mass = mass
-        self.position = position
-        self.max_speed = max_speed
-        self.max_force = max_force
-        self.velocity = velocity
-        self.behavior_type = behavior_type
+                 decay_rate: float,
+                 max_sight: int,
+                 behavior_type: BehaviorType):
+
+        self.mass: int = mass
+        self.position: pygame.Vector2 = position
+        self.max_speed: int = max_speed
+        self.max_force: int = max_force
+        self.velocity: pygame.Vector2 = velocity
+        self.decay_rate: float = decay_rate
+        self.behavior_type: BehaviorType = behavior_type
 
         # This is for drawing the vectors and are not needed.  Helpful for debugging
         self.desired_velocity = NULL_VECTOR
         self.steering_force = NULL_VECTOR
 
-        # self.vel_coef = 1
-        self.vel_coef = 0.95
-        self.max_sight = 400
+        self.vel_coef = 1
+        # self.vel_coef = 0.999
+        self.max_sight = max_sight
 
-        # self.decay_rate = 0.3
-        self.decay_rate = 1
 
 
 
