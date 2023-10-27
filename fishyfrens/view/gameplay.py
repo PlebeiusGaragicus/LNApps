@@ -1,5 +1,6 @@
 import time
 import random
+# import math
 import logging
 logger = logging.getLogger()
 
@@ -7,7 +8,8 @@ import pygame
 
 from gamelib.colors import Colors, arcade_color
 from gamelib.globals import APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
-from gamelib.cooldown_keys import CooldownKey, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT
+# from gamelib.cooldown_keys import CooldownKey, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT
+from gamelib.cooldown_keys import *
 from gamelib.viewstate import View
 from gamelib.text import text
 
@@ -37,6 +39,7 @@ class GameplayView(View):
             KEY_DOWN: CooldownKey(pygame.K_DOWN, COOLDOWN_DIRECTIONAL_SECONDS),
             KEY_LEFT: CooldownKey(pygame.K_LEFT, COOLDOWN_DIRECTIONAL_SECONDS),
             KEY_RIGHT: CooldownKey(pygame.K_RIGHT, COOLDOWN_DIRECTIONAL_SECONDS),
+            KEY_SPACE: CooldownKey(pygame.K_SPACE, 3),
         }
 
         self.score = 0
@@ -47,6 +50,7 @@ class GameplayView(View):
         # NOTE: This is called when the view is switched to, so it's a good place to reset things
         # we can also use this to setup the view the first time it's run instead of in __init__()
 
+        AUDIO.play_bg(1)
         self.start_time = time.time()
         self.last_agent_spawn_time = time.time()
         self.last_flee_agent_spawn_time = time.time()
@@ -110,7 +114,18 @@ class GameplayView(View):
             a.draw()
 
         self.player.draw()
+        self.player.draw_life_bar()
         text(APP_SCREEN, f"Score: {self.score}", (SCREEN_WIDTH // 2, 20), font_size=40, color=arcade_color.YELLOW_ORANGE, center=True)
+
+        if debug.DRAW_STATS:
+            # fps = f"FPS: {App.get_instance().fps:.0f}"
+            fps = f"FPS: {App.get_instance().clock.get_fps():.0f}"
+            # speed = math.trunc(self.player.velocity.magnitude())
+            # speed = math.ceil(self.player.velocity.magnitude())
+            # round speed to nearest whole number
+            speed = round(self.player.velocity.magnitude())
+            text(APP_SCREEN, f"speed: {speed}", (SCREEN_WIDTH // 2, 60), font_size=20, color=arcade_color.YELLOW_ORANGE, center=True)
+            text(APP_SCREEN, fps, (SCREEN_WIDTH // 2, 80), font_size=20, color=arcade_color.YELLOW_ORANGE, center=True)
 
         if self.paused:
             fade_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
@@ -161,7 +176,16 @@ class GameplayView(View):
 
             if self.paused:
                 return
-            
+
+            # speed bost! # NOTE: now a cooldown key
+            # if event.key == pygame.K_SPACE:
+            #     #TODO this makes the player jump too rapidly
+            #     # self.player.velocity += self.player.velocity * 0.001
+            #     # self.player.acceleration *= 2
+            #     self.player.boost()
+            #     logger.debug("BOOST!")
+
+
             if event.key == pygame.K_z:
                 self.spawn_seek_agent()
             elif event.key == pygame.K_x:
@@ -175,8 +199,12 @@ class GameplayView(View):
             elif event.key == pygame.K_r:
                 # global DRAW_RECTS
                 debug.DRAW_RECTS = not debug.DRAW_RECTS
+            elif event.key == pygame.K_b:
+                debug.DRAW_STATS = not debug.DRAW_STATS
+            elif event.key == pygame.K_k:
+                self.player.life = 0
 
-            if event.key == pygame.K_SPACE:
+            if event.key == pygame.K_l: # kill all agents
                 # self.player.fire()
                 self.actor_group = pygame.sprite.Group()
 
@@ -225,6 +253,9 @@ class GameplayView(View):
             self.player.acceleration.x += -PLAYER_ACCELERATION
         if self.cooldown_keys[KEY_RIGHT].run(key=key):
             self.player.acceleration.x += PLAYER_ACCELERATION
+        if self.cooldown_keys[KEY_SPACE].run(key=key):
+            AUDIO.boost()
+            self.player.boost()
 
 
 

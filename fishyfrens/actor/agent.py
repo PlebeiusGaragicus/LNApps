@@ -175,15 +175,22 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
         screen_pos = self.position - pygame.Vector2(CAMERA.offset)
 
         # Draw the sprite at its screen position
-        APP_SCREEN.blit(rotated_image, screen_pos)
+        # APP_SCREEN.blit(rotated_image, screen_pos)
 
         # self.rect = self.image.get_rect(topleft=pos)
 
         if debug.DRAW_MASKS:
-            mask_surface = pygame.Surface(rotated_image.get_size(), pygame.SRCALPHA)
-            mask_surface.fill((255, 0, 0, 100))  # Red with alpha transparency
-            mask_surface.blit(rotated_image, (0, 0), None, pygame.BLEND_RGBA_MULT)
-            APP_SCREEN.blit(mask_surface, screen_pos)
+            # _img = pygame.transform.rotate(self.mask.to_surface(), self.velocity.angle_to(self.image_orientation))
+            _img = self.mask.to_surface()
+            _img.set_colorkey((0, 0, 0))
+            APP_SCREEN.blit(_img, screen_pos)
+            # mask_surface = pygame.Surface(rotated_image.get_size(), pygame.SRCALPHA)
+            # mask_surface.fill((255, 0, 0, 100))  # Red with alpha transparency
+            # mask_surface.blit(rotated_image, (0, 0), None, pygame.BLEND_RGBA_MULT)
+            # APP_SCREEN.blit(mask_surface, screen_pos)
+        else:
+            APP_SCREEN.blit(rotated_image, screen_pos)
+
         
         if debug.DRAW_VECTORS:
             self.draw_vectors()

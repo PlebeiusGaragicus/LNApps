@@ -50,7 +50,7 @@ class MainMenuView(View):
 
     def setup(self):
         # NOTE: audio now started in the splash screen - but this is needed for when the results view opens the menu view
-        AUDIO.play_bg()
+        AUDIO.play_bg(0)
 
 
     def update(self):

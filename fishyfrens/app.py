@@ -33,14 +33,14 @@ class App(Singleton):
 
 
     @classmethod
-    def get_instance(cls):
+    def get_instance(cls) -> 'App':
         if cls._instance:
             return cls._instance
         else:
             return cls.configure_instance()
 
     @classmethod
-    def configure_instance(cls):
+    def configure_instance(cls) -> 'App':
         if cls._instance:
             raise Exception("Instance already configured")
         app = cls.__new__(cls)

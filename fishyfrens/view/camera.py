@@ -1,5 +1,7 @@
 import pygame
 
+from gamelib.utils import lerp
+
 from fishyfrens.config import *
 from fishyfrens.view.gameplay import SCREEN_WIDTH, SCREEN_HEIGHT
 
@@ -22,8 +24,17 @@ class Camera:
         max_camera_x = PLAYFIELD_WIDTH - SCREEN_WIDTH
         max_camera_y = PLAYFIELD_HEIGHT - SCREEN_HEIGHT
 
-        self.offset.x = max_camera_x * player_ratio_x - BUFFER // 3
-        self.offset.y = max_camera_y * player_ratio_y - BUFFER // 3
+        # self.offset.x = max_camera_x * player_ratio_x - BUFFER // 3
+        # self.offset.y = max_camera_y * player_ratio_y - BUFFER // 3
+
+        offx = max_camera_x * player_ratio_x - BUFFER // 3
+        offy = max_camera_y * player_ratio_y - BUFFER // 3
+
+        self.offset.x = lerp(self.offset.x, offx, 0.2) # 0.02
+        self.offset.y = lerp(self.offset.y, offy, 0.2)
+
+
+
 
         # self.offset.x = self.target.rect.x - int(SCREEN_WIDTH / 2)
         # self.offset.y = self.target.rect.y - int(SCREEN_HEIGHT / 2)

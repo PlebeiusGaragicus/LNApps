@@ -37,6 +37,7 @@ class Player(pygame.sprite.Sprite):
 
         self.life = 100
         self.last_life_loss = time.time()
+        self.boost_time = 0
 
 
 
@@ -72,12 +73,30 @@ class Player(pygame.sprite.Sprite):
         self.velocity += self.acceleration
         self.acceleration *= 0.4
 
+
+        # if self.velocity.magnitude() > PLAYER_TOP_SPEED + max(0, self.boost_time - time.time() + 3):
+        #     print("limiting speed")
+        #     # DAMPEN VELOCITY (but allow for a minimum 'drift' velocity)
+        #     if self.velocity.magnitude() > 0.5:
+        #         self.velocity *= self.velocity_dampening
+
+        #     self.velocity = self.velocity.normalize() * PLAYER_TOP_SPEED
+        # else:
+        #     print(self.velocity.magnitude())
+
         # DAMPEN VELOCITY (but allow for a minimum 'drift' velocity)
         if self.velocity.magnitude() > 0.5:
             self.velocity *= self.velocity_dampening
 
-        if self.velocity.magnitude() > PLAYER_TOP_SPEED:
-            self.velocity = self.velocity.normalize() * PLAYER_TOP_SPEED
+        time_remaining = self.boost_time - time.time()
+        # speed_boost = 0 if time_remaining < 0 else 4 # SPEED_BOOST_AMOUNT
+        # speed_boost = 0 if time_remaining < 0 else time_remaining # SPEED_BOOST_AMOUNT
+        speed_boost = max(0, time_remaining * 9) # SPEED_BOOST_AMOUNT
+
+        if self.velocity.magnitude() > PLAYER_TOP_SPEED + speed_boost:
+            self.velocity = self.velocity.normalize() * (PLAYER_TOP_SPEED + speed_boost)
+
+        print( self.velocity.magnitude() )
 
         self.position += self.velocity
         self.bounce_off_walls(attenuate=True)
@@ -100,16 +119,24 @@ class Player(pygame.sprite.Sprite):
         screen_pos = self.position - pygame.Vector2(CAMERA.offset)
 
         # Draw the sprite at its screen position
-        APP_SCREEN.blit(rotated_image, screen_pos)
+        # APP_SCREEN.blit(rotated_image, screen_pos)
 
         if debug.DRAW_MASKS:
-            mask_surface = pygame.Surface(rotated_image.get_size(), pygame.SRCALPHA)
-            mask_surface.fill((255, 0, 0, 100))  # Red with alpha transparency
-            mask_surface.blit(rotated_image, (0, 0), None, pygame.BLEND_RGBA_MULT)
-            APP_SCREEN.blit(mask_surface, screen_pos)
+            # _img = pygame.transform.rotate(self.mask.to_surface(), self.velocity.angle_to(self.image_orientation))
+            _img = self.mask.to_surface()
+            _img.set_colorkey((0, 0, 0))
+            APP_SCREEN.blit(_img, screen_pos)
+            # mask_surface = pygame.Surface(rotated_image.get_size(), pygame.SRCALPHA)
+            # mask_surface.fill((255, 255, 255, 100))  # Red with alpha transparency
+            # mask_surface.blit(rotated_image, (0, 0), None, pygame.BLEND_RGBA_MULT)
+            # APP_SCREEN.blit(mask_surface, screen_pos)
+        else:
+            APP_SCREEN.blit(rotated_image, screen_pos)
+
 
         if debug.DRAW_VECTORS:
-            self.draw_vectors()
+            # self.draw_vectors()
+            self.draw_velocity_overlay()
 
         if debug.DRAW_RECTS:
             # Convert the sprite's rect to screen coordinates for drawing
@@ -117,7 +144,7 @@ class Player(pygame.sprite.Sprite):
             screen_rect.topleft = screen_pos
             pygame.draw.rect(APP_SCREEN, Colors.WHITE, screen_rect, 2)
         
-        self.draw_life_bar()
+        # self.draw_life_bar() # now done in gameplay draw() method
 
 
     # def draw(self):
@@ -147,6 +174,15 @@ class Player(pygame.sprite.Sprite):
     #         pygame.draw.rect(APP_SCREEN, Colors.WHITE, self.rect, 2)
 
     #     self.draw_life_bar()
+
+    # def boost(self):
+    #     self.velocity += self.velocity.normalize() * 10
+    #     self.boost_time = time.time() + 3
+    def boost(self):
+        # AUDIO.boost()
+        self.velocity += self.velocity.normalize() * 3
+        self.boost_time = time.time() + 1  # Set the boost time to 3 seconds in the future
+
 
 
 
