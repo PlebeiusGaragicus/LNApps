@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# cd "$(dirname '$0')" # TODO: is tjhis correct?!@?!@?!??!?
+
+source venv/bin/activate
+
+export DEBUG=true
+
+python3 -m fishyfrens

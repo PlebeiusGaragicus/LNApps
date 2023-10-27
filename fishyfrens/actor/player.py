@@ -9,9 +9,9 @@ logger = logging.getLogger()
 from gamelib.globals import *
 from gamelib.colors import Colors
 
-from grub.config import *
-from grub.app import MY_DIR
-from grub.view.camera import CAMERA
+from fishyfrens.config import *
+from fishyfrens.app import MY_DIR
+from fishyfrens.view.camera import CAMERA
 
 # NOTE: only for MacOS... need to test on rpi
 # this is because of the menu bar / camera cutout on the macbook air

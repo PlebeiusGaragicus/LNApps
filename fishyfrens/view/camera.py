@@ -1,7 +1,7 @@
 import pygame
 
-from grub.config import *
-from grub.view.gameplay import SCREEN_WIDTH, SCREEN_HEIGHT
+from fishyfrens.config import *
+from fishyfrens.view.gameplay import SCREEN_WIDTH, SCREEN_HEIGHT
 
 BUFFER = SCREEN_WIDTH // 3
 

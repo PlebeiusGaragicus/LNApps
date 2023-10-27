@@ -10,9 +10,9 @@ from gamelib.menuaction import MenuAction
 from gamelib.colors import Colors, arcade_color
 from gamelib.text import text
 
-from grub.app import App
-from grub.config import AFK_TIMEOUT
-from grub.audio import AUDIO
+from fishyfrens.app import App
+from fishyfrens.config import AFK_TIMEOUT
+from fishyfrens.audio import AUDIO
 
 
 

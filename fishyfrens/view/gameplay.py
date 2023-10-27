@@ -11,12 +11,12 @@ from gamelib.cooldown_keys import CooldownKey, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_R
 from gamelib.viewstate import View
 from gamelib.text import text
 
-from grub.config import *
-from grub.app import App
-from grub.actor.player import Player
-from grub.actor.agent import Agent, AgentType
-from grub.view.camera import CAMERA
-from grub.audio import AUDIO
+from fishyfrens.config import *
+from fishyfrens.app import App
+from fishyfrens.actor.player import Player
+from fishyfrens.actor.agent import Agent, AgentType
+from fishyfrens.view.camera import CAMERA
+from fishyfrens.audio import AUDIO
 
 
 

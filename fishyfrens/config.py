@@ -23,8 +23,8 @@ PLAYER_TOP_SPEED = 3
 PLAYER_ACCELERATION = 0.5
 
 #NOTE: This would create a circular import
-# from grub.view.camera import Camera
+# from .view.camera import Camera
 # CAMERA: Camera = None
 
-# from grub.actor.player import Player
+# from .actor.player import Player
 # PLAYER: Player = None

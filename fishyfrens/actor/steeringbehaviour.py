@@ -7,7 +7,7 @@ import numpy as np
 from gamelib.colors import Colors
 from gamelib.globals import APP_SCREEN
 
-from grub.view.camera import CAMERA
+from fishyfrens.view.camera import CAMERA
 
 NULL_VECTOR = pygame.Vector2(0, 0)
 

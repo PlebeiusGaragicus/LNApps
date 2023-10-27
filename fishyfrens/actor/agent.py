@@ -9,10 +9,10 @@ import pygame
 from gamelib.globals import APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
 from gamelib.colors import Colors
 
-from grub.config import *
-from grub.app import MY_DIR
-from grub.actor.steeringbehaviour import SteeringBehaviour, BehaviorType, NULL_VECTOR
-from grub.view.camera import CAMERA
+from fishyfrens.config import *
+from fishyfrens.app import MY_DIR
+from fishyfrens.actor.steeringbehaviour import SteeringBehaviour, BehaviorType, NULL_VECTOR
+from fishyfrens.view.camera import CAMERA
 
 SAFE_BUFFER = 100
 

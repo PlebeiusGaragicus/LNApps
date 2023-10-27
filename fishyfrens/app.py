@@ -17,7 +17,7 @@ from gamelib.logger import setup_logging
 from gamelib.singleton import Singleton
 from gamelib.viewstate import ViewManager
 
-from grub.config import *
+from fishyfrens.config import *
 
 MY_DIR = os.path.dirname(os.path.abspath(__file__))
 # APP_SCREEN: pygame.Surface = None
@@ -78,7 +78,9 @@ class App(Singleton):
             app.screen = pygame.display.set_mode(flags=pygame.FULLSCREEN | pygame.NOFRAME | pygame.HWSURFACE | pygame.DOUBLEBUF)
 
         pygame.display.set_allow_screensaver(False)
-        # pygame.mouse.set_visible(False)
+
+        if app.manifest.get("debug", False) == False:
+            pygame.mouse.set_visible(False)
 
         # global APP_SCREEN
         globals.APP_SCREEN = app.screen
@@ -87,18 +89,17 @@ class App(Singleton):
         # global SCREEN_HEIGHT
         globals.SCREEN_HEIGHT = app.height
 
-        pygame.display.set_caption( app.manifest['name'] )
-        # pygame.display.set_caption( app.manifest_key_value('name') )
+        pygame.display.set_caption( app.manifest['name'] ) # NOTE: potential KeyError
 
         #### setup views
         app.viewmanager = ViewManager()
-        from grub.view.splash import SplashScreenView
+        from fishyfrens.view.splash import SplashScreenView
         app.viewmanager.add_view("splash_screen", SplashScreenView())
-        from grub.view.menu import MainMenuView
+        from fishyfrens.view.menu import MainMenuView
         app.viewmanager.add_view("main_menu", MainMenuView())
-        from grub.view.gameplay import GameplayView
+        from fishyfrens.view.gameplay import GameplayView
         app.viewmanager.add_view("gameplay", GameplayView())
-        from grub.view.results import ResultsView
+        from fishyfrens.view.results import ResultsView
         app.viewmanager.add_view("results", ResultsView())
 
 
@@ -108,8 +109,7 @@ class App(Singleton):
     def start(self):
         logger.debug("App.start()")
 
-        # if self.manifest.get('debug', False) == True:
-        if self.manifest_key_value('debug') == True:
+        if self.manifest_key_value('skip_to_gameplay', False) == True:
             self.viewmanager.run_view("gameplay")
         else:
             self.viewmanager.run_view("splash_screen")

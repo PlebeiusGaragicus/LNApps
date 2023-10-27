@@ -1,21 +1,19 @@
 import time
 import logging
 logger = logging.getLogger()
-from icecream import ic
+# from icecream import ic
 
 import pygame
 import random
 
-# from gamelib.globals import *
 from gamelib.globals import APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
 from gamelib.colors import Colors, arcade_color
 from gamelib.viewstate import View
 from gamelib.menuaction import MenuAction
 
-# from grub.app import App, APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
-from grub.app import App
-from grub.config import *
-from grub.audio import AUDIO
+from fishyfrens.app import App
+from fishyfrens.config import *
+from fishyfrens.audio import AUDIO
 
 
 
@@ -46,14 +44,13 @@ class MainMenuView(View):
 
 
     def start_game(self):
-        pygame.mixer.music.stop()
+        AUDIO.stop_bg()
         App.get_instance().viewmanager.run_view("gameplay")
 
 
     def setup(self):
-        # AUDIO.background_music.play(loops=-1)
-        pygame.mixer.music.play(-1)
-
+        # NOTE: audio now started in the splash screen - but this is needed for when the results view opens the menu view
+        AUDIO.play_bg()
 
 
     def update(self):
