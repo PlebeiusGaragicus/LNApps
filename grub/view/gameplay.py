@@ -26,6 +26,8 @@ class GameplayView(View):
 
         # NOTE: put static things here that don't need to be reset when the game is reset
         self.cooldown_keys: dict[CooldownKey] = {
+            # TODO - allow multiple keys or 'input methods' for each action
+            # cross playform baby!!!
             # KEY_UP: CooldownKey(pygame.K_w, COOLDOWN_DIRECTIONAL_SECONDS),
             # KEY_DOWN: CooldownKey(pygame.K_s, COOLDOWN_DIRECTIONAL_SECONDS),
             # KEY_LEFT: CooldownKey(pygame.K_a, COOLDOWN_DIRECTIONAL_SECONDS),
@@ -35,6 +37,9 @@ class GameplayView(View):
             KEY_LEFT: CooldownKey(pygame.K_LEFT, COOLDOWN_DIRECTIONAL_SECONDS),
             KEY_RIGHT: CooldownKey(pygame.K_RIGHT, COOLDOWN_DIRECTIONAL_SECONDS),
         }
+
+        self.score = 0
+        self.level = App.get_instance().manifest_key_value('starting_level', 1)
 
 
     def setup(self):
@@ -65,49 +70,23 @@ class GameplayView(View):
         if self.paused:
             return
 
-        while len(self.actor_group) < MAX_AGENTS:
-            if random.randint(1, 100) <= 5: # 5% chance:
-                self.spawn_seek_agent()
-            else:
-                if random.randint(1, 100) <= 50: # 50% chance:
-                    self.spawn_flee_agent()
-                else:
-                    self.spawn_dot_agent()
-
-
-        # if time.time() > self.last_flee_agent_spawn_time + AGENT_SPAWN_INTERVAL_SECONDS:
-        #     self.last_flee_agent_spawn_time = time.time()
-        #     self.spawn_flee_agent()
-
-        # if time.time() > self.last_seek_agent_spawn_time + AGENT_SPAWN_INTERVAL_SECONDS * 10:
-        #     self.last_seek_agent_spawn_time = time.time()
-        #     self.spawn_seek_agent()
-
-        self.handle_cooldown_keys()
 
         # self.actor_group.update(player=self.player)
         self.actor_group.update()
+
+
+        self.handle_cooldown_keys()
         self.player.update()
 
-        collisions = pygame.sprite.spritecollide(self.player, self.actor_group, False, pygame.sprite.collide_mask)
-        for agent in collisions:
-            # logger.info("Player collided with agent")
-            # agent.dead = True
-            if agent.type == AgentType.Dot:
-                AUDIO.dink()
-                self.player.adjust_life(6)
-            elif agent.type == AgentType.Shrimp:
-                AUDIO.dink()
-                self.player.adjust_life(14)
-            elif agent.type == AgentType.Crab:
-                self.player.adjust_life(-10)
-                AUDIO.oww()
 
-            # TODO: let's call a callback in order to do cool things before we destroy the agent.
-            self.actor_group.remove(agent)
-            del agent
+        if self.level == 1:
+            self.level1()
+        elif self.level == 2:
+            self.level2()
 
-        CAMERA.update()
+        # self.handle_collisions() # level functions must handle their own agent generation and collisions
+
+        CAMERA.update() # this should be done last
 
 
 
@@ -115,10 +94,40 @@ class GameplayView(View):
     def draw(self):
         APP_SCREEN.fill(Colors.BLACK)
 
-        # draw a border around the game window
-        # arcade.draw_rectangle_outline(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT, arcade.color.GREEN, border_width=self.border_width)
-        # pygame.draw.rect(APP_SCREEN, Colors.GREEN, (0, 0, SCREEN_WIDTH, SCREEN_HEIGHT), self.border_width)
+        self.draw_playfield_boarder()
 
+        # show pressed keys
+        pressed_keys = []
+        for key, cooldown_key in self.cooldown_keys.items():
+            if cooldown_key.pressed:
+                pressed_keys.append(key)
+
+        # TODO - toggle extra stats on screen
+        # arcade.draw_text(f"Pressed keys: {pressed_keys}", SCREEN_WIDTH - 10, SCREEN_HEIGHT * 0.9, arcade.color.WHITE, font_size=20, anchor_x="right")
+
+        for a in self.actor_group:
+            a.draw()
+
+        self.player.draw()
+        text(APP_SCREEN, f"Score: {self.score}", (SCREEN_WIDTH // 2, 20), font_size=40, color=arcade_color.YELLOW_ORANGE, center=True)
+
+        if self.paused:
+            fade_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+            fade_surface.fill((0, 0, 0, 128))
+            APP_SCREEN.blit(fade_surface, (0, 0))
+            text(APP_SCREEN, "PAUSED", (SCREEN_WIDTH / 2, SCREEN_HEIGHT * 0.3), color=arcade_color.YELLOW_ROSE, font_size=100, center=True)
+
+        if self.escape_pressed_time is not None:
+            time_elapsed = time.time() - self.escape_pressed_time
+            if time_elapsed >= HOLD_TO_QUIT_SECONDS:
+                # self.alive = False
+                # self.escape_pressed_time = None
+                App.get_instance().viewmanager.run_view("main_menu")
+            else:
+                self.draw_timer_wheel(time_elapsed)
+
+
+    def draw_playfield_boarder(self):
         # draw a line from 0,0 to 0, screen height using pygame
         _start = pygame.Vector2(-CAMERA.offset.x, -CAMERA.offset.y)
         _end = pygame.Vector2(-CAMERA.offset.x, -CAMERA.offset.y + PLAYFIELD_HEIGHT)
@@ -140,40 +149,8 @@ class GameplayView(View):
         pygame.draw.line(APP_SCREEN, Colors.MAGENTA, _start, _end, BORDER_WIDTH)
 
 
-        # show pressed keys
-        pressed_keys = []
-        for key, cooldown_key in self.cooldown_keys.items():
-            if cooldown_key.pressed:
-                pressed_keys.append(key)
-
-        # TODO - toggle extra stats on screen
-        # arcade.draw_text(f"Pressed keys: {pressed_keys}", SCREEN_WIDTH - 10, SCREEN_HEIGHT * 0.9, arcade.color.WHITE, font_size=20, anchor_x="right")
-
-        for a in self.actor_group:
-            a.draw()
-
-        self.player.draw()
-
-
-        if self.paused:
-            fade_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-            fade_surface.fill((0, 0, 0, 128))
-            APP_SCREEN.blit(fade_surface, (0, 0))
-            text(APP_SCREEN, "PAUSED", (SCREEN_WIDTH / 2, SCREEN_HEIGHT * 0.3), color=arcade_color.YELLOW_ROSE, font_size=100, center=True)
-
-        if self.escape_pressed_time is not None:
-            time_elapsed = time.time() - self.escape_pressed_time
-            if time_elapsed >= HOLD_TO_QUIT_SECONDS:
-                # self.alive = False
-                # self.escape_pressed_time = None
-                App.get_instance().viewmanager.run_view("main_menu")
-            else:
-                self.draw_timer_wheel(time_elapsed)
-
-
 
     def handle_event(self, event):
-
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_BACKSPACE:
                 self.escape_pressed_time = time.time()
@@ -255,3 +232,54 @@ class GameplayView(View):
         agent = Agent(AgentType.Dot)
         agent.target = self.player
         self.actor_group.add(agent)
+
+
+    def handle_collisions(self):
+        collisions = pygame.sprite.spritecollide(self.player, self.actor_group, False, pygame.sprite.collide_mask)
+        for agent in collisions:
+            # logger.info("Player collided with agent")
+            # agent.dead = True
+            if agent.type == AgentType.Dot:
+                AUDIO.dink()
+                self.score += 1
+                self.player.adjust_life(6)
+            elif agent.type == AgentType.Shrimp:
+                AUDIO.dink()
+                self.score += 2
+                self.player.adjust_life(14)
+            elif agent.type == AgentType.Crab:
+                self.score -= 3
+                AUDIO.oww()
+                self.player.adjust_life(-10)
+
+            # TODO: let's call a callback in order to do cool things before we destroy the agent.
+            self.actor_group.remove(agent)
+            del agent
+
+
+    def level1(self):
+        while len(self.actor_group) < MAX_AGENTS:
+            if random.randint(1, 100) <= 5: # 5% chance:
+                self.spawn_seek_agent()
+            else:
+                if random.randint(1, 100) <= 50: # 50% chance:
+                    self.spawn_flee_agent()
+                else:
+                    self.spawn_dot_agent()
+        
+
+        self.handle_collisions()
+
+
+    def level2(self):
+        AGENT_SPAWN_INTERVAL_SECONDS = 1.4
+
+        if time.time() > self.last_flee_agent_spawn_time + AGENT_SPAWN_INTERVAL_SECONDS:
+            self.last_flee_agent_spawn_time = time.time()
+            self.spawn_flee_agent()
+
+        if time.time() > self.last_seek_agent_spawn_time + AGENT_SPAWN_INTERVAL_SECONDS * 10:
+            self.last_seek_agent_spawn_time = time.time()
+            self.spawn_seek_agent()
+
+        self.handle_collisions()

@@ -88,11 +88,12 @@ class App(Singleton):
         globals.SCREEN_HEIGHT = app.height
 
         pygame.display.set_caption( app.manifest['name'] )
+        # pygame.display.set_caption( app.manifest_key_value('name') )
 
         #### setup views
         app.viewmanager = ViewManager()
-        # from grub.view.splash import SplashScreenView
-        # app.viewmanager.add_view("splash_screen", SplashScreenView())
+        from grub.view.splash import SplashScreenView
+        app.viewmanager.add_view("splash_screen", SplashScreenView())
         from grub.view.menu import MainMenuView
         app.viewmanager.add_view("main_menu", MainMenuView())
         from grub.view.gameplay import GameplayView
@@ -107,12 +108,11 @@ class App(Singleton):
     def start(self):
         logger.debug("App.start()")
 
-        # self.viewmanager.run_view("gameplay")
-        self.viewmanager.run_view("main_menu")
-        # if self.manifest.get('skip_intro', False) == True:
-        #     self.viewmanager.run_view("main_menu")
-        # else:
-        #     self.viewmanager.run_view("splash_screen")
+        # if self.manifest.get('debug', False) == True:
+        if self.manifest_key_value('debug') == True:
+            self.viewmanager.run_view("gameplay")
+        else:
+            self.viewmanager.run_view("splash_screen")
 
         self.running = True
         while self.running:
@@ -154,3 +154,6 @@ class App(Singleton):
         self.running = False
         # pygame.quit()
         # sys.exit()
+
+    def manifest_key_value(self, key: str, default = None):
+        return self.manifest.get(key, default)

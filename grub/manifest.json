@@ -1,8 +1,5 @@
 {
     "name": "Grubs!",
-    "skip_intro": true,
-    "settings": {
-        "difficulty": "easy",
-        "cheats_enabled": true
-    }
+    "debug": true,
+    "starting_level": 1
 }

@@ -3,7 +3,7 @@ import pygame
 from gamelib.globals import *
 
 
-def text(surface: pygame.Surface, text, position, font_name='Arial', font_size=36, color=(255, 255, 255), center=False):
+def text(surface: pygame.Surface, text, position, font_size=36, color=(255, 255, 255), center=False, font_name='Arial'):
     """
     A helper function to draw text on a Pygame surface.
 
