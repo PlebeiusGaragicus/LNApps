@@ -27,10 +27,11 @@ PLAYFIELD_HEIGHT = 4000
 LIFE_SUCK_RATE = 1
 AGENT_SPAWN_INTERVAL_SECONDS = 0.05
 # MAX_AGENTS = 900 # 80 FPS MacOS
-# MAX_AGENTS = 2000 # 46 FPS MacOS
+# MAX_AGENTS = 2000 # 80 FPS MacOS (after optimization!!!)
+MAX_AGENTS = 4000 # Very playable on MacOS - can lag when screen crowded & with vectors/mask drawn
 # MAX_AGENTS = 1500 # 53 FPS MacOS / ~35-45 on arcade
-MAX_AGENTS = 1000 # 70-80 FPS MacOS / 
-# MAX_AGENTS = 5000 # 50 FPS MacOS / SHIT on arcade
+# MAX_AGENTS = 1000 # 70-80 FPS MacOS / 
+MAX_AGENTS = 5000 # 40-50 FPS MacOS / SHIT on arcade
 
 
 ## PLAYER

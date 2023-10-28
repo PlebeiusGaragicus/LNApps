@@ -328,15 +328,15 @@ class GameplayView(View):
             if agent.type == AgentType.Dot:
                 AUDIO.dink()
                 self.score += 1
-                self.player.adjust_life(6)
+                self.player.adjust_life(13) # faster
             elif agent.type == AgentType.Shrimp:
                 AUDIO.dink()
                 self.score += 2
-                self.player.adjust_life(14)
+                self.player.adjust_life(5) # more plentiful
             elif agent.type == AgentType.Crab:
                 self.score -= 3
                 AUDIO.oww()
-                self.player.adjust_life(-10)
+                self.player.adjust_life(-15)
 
             # TODO: let's call a callback in order to do cool things before we destroy the agent.
             self.actor_group.remove(agent)

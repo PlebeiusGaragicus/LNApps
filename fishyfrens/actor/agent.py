@@ -16,10 +16,12 @@ from fishyfrens.actor.steeringbehaviour import SteeringBehaviour, BehaviorType, 
 from fishyfrens.view.camera import CAMERA
 
 
-# TODO: For the edge of the screen??? the wall boundary?  Nah, fix this
+# how far away from the edge of the playfield should agents be spawned
 SAFE_BUFFER = 100
 
-VIEW_OPTO_PIXEL_DISTANCE = -150 # how far off screen to draw agents
+
+# how far off screen to draw agents - arbitrary number that needs a better solution overall
+VIEW_OPTO_PIXEL_DISTANCE = -150 
 
 
 class AgentType(enum.Enum):
@@ -41,6 +43,20 @@ class BoundaryBehaviour(enum.Enum):
 
 
 
+def load_agent_images():
+    agent_images[AgentType.Dot] = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'dotfish.png')).convert_alpha()
+    for i in range(1, 4):
+        agent_images[AgentType.Shrimp, i] = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', f'shrimp{i}.png')).convert_alpha()
+    agent_images[AgentType.Crab] = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'kraken.png')).convert_alpha()
+
+agent_images = {}
+load_agent_images()
+
+
+
+
+
+
 class Agent(pygame.sprite.Sprite, SteeringBehaviour):
     def __init__(self, type: AgentType):
         pygame.sprite.Sprite.__init__(self)
@@ -57,7 +73,8 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
 
         self.type = type
         if type == AgentType.Dot:
-            self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'dotfish.png')).convert_alpha()
+            # self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'dotfish.png')).convert_alpha()
+            self.image = agent_images[AgentType.Dot]
             self.image_orientation: pygame.Vector2 = pygame.Vector2(0, 1) # facing down
             SteeringBehaviour.__init__(self,
                                        mass=1,
@@ -71,7 +88,9 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
 
         elif type == AgentType.Shrimp:
             r = random.randint(1, 3)
-            self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', f'shrimp{r}.png')).convert_alpha()
+            # self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', f'shrimp{r}.png')).convert_alpha()
+            r = random.randint(1, 3)
+            self.image = agent_images[AgentType.Shrimp, r]
             self.image_orientation: pygame.Vector2 = pygame.Vector2(-1, 0) # facing left
             SteeringBehaviour.__init__(self,
                                        mass=1,
@@ -84,7 +103,8 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
                                        behavior_type=BehaviorType.FLEE)
 
         elif type == AgentType.Crab:
-            self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'kraken.png')).convert_alpha()
+            # self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'kraken.png')).convert_alpha()
+            self.image = agent_images[AgentType.Crab]
             # scale_by = 1
             # self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * scale_by), int(self.image.get_height() * scale_by)))
             # self.image_orientation = pygame.Vector2(-1, 1)
@@ -115,6 +135,7 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
         # self.rect = self.image.get_rect()
         self.size = pygame.Vector2(self.image.get_size())
         self.rect = self.image.get_rect(topleft=self.position) # <-- this is the key to getting the collision detection bounding box to move with the sprite
+        self.rotated_image = self.image
         self.mask = pygame.mask.from_surface(self.image)
 
         # self.invisible = False
@@ -161,8 +182,11 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
         # Update mask for pixel-perfect collision
         # Note: Only necessary if the sprite's appearance or orientation changes
         angle = self.velocity.angle_to(self.image_orientation)
-        rotated_image = pygame.transform.rotate(self.image, angle)
-        self.mask = pygame.mask.from_surface(rotated_image)
+
+        # rotated_image = pygame.transform.rotate(self.image, angle)
+        # self.mask = pygame.mask.from_surface(rotated_image)
+        self.rotated_image = pygame.transform.rotate(self.image, angle)
+        self.mask = pygame.mask.from_surface(self.rotated_image)
 
 
 
@@ -208,16 +232,23 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
         # self.rect = self.image.get_rect(topleft=pos)
 
         if debug.DRAW_MASKS:
+            # mask_surface = pygame.Surface(self.mask.get_size(), pygame.SRCALPHA)
+            # mask_surface.fill((255, 0, 0, 100))
+            # APP_SCREEN.blit(mask_surface, screen_pos, None, pygame.BLEND_RGBA_MULT)
+
             # _img = pygame.transform.rotate(self.mask.to_surface(), self.velocity.angle_to(self.image_orientation))
+
             _img = self.mask.to_surface()
             _img.set_colorkey((0, 0, 0))
             APP_SCREEN.blit(_img, screen_pos)
+
             # mask_surface = pygame.Surface(rotated_image.get_size(), pygame.SRCALPHA)
             # mask_surface.fill((255, 0, 0, 100))  # Red with alpha transparency
             # mask_surface.blit(rotated_image, (0, 0), None, pygame.BLEND_RGBA_MULT)
             # APP_SCREEN.blit(mask_surface, screen_pos)
         else:
-            APP_SCREEN.blit(rotated_image, screen_pos)
+            # APP_SCREEN.blit(rotated_image, screen_pos)
+            APP_SCREEN.blit(self.rotated_image, screen_pos)
 
         
         if debug.DRAW_VECTORS:
