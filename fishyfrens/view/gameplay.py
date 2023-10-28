@@ -302,7 +302,21 @@ class GameplayView(View):
 
 
     def handle_collisions(self):
-        collisions = pygame.sprite.spritecollide(self.player, self.actor_group, False, pygame.sprite.collide_mask)
+        # find all agents within the screen
+        visible_agents = pygame.sprite.Group()
+        # for agent in self.actor_group:
+        #     if agent.position.x - CAMERA.offset.x < 100 \
+        #     or agent.position.x - CAMERA.offset.x > SCREEN_WIDTH - 100 \
+        #         or agent.position.y - CAMERA.offset.y < 100 \
+        #             or agent.position.y - CAMERA.offset.y > SCREEN_HEIGHT - 100:
+        for agent in self.actor_group:
+            if agent.is_onscreen:
+                visible_agents.add(agent)
+
+        print(f"% of visible agents: {len(visible_agents) / len(self.actor_group)}")
+
+        # collisions = pygame.sprite.spritecollide(self.player, self.actor_group, False, pygame.sprite.collide_mask)
+        collisions = pygame.sprite.spritecollide(self.player, visible_agents, False, pygame.sprite.collide_mask)
         for agent in collisions:
             # agent.dead = True
             if agent.type == AgentType.Dot:

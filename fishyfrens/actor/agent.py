@@ -118,6 +118,7 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
         # self.invisible = False
         self.hide_out_of_sight = False
         self.dead = False
+        self.is_onscreen = None
 
 
 
@@ -132,7 +133,10 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
             or self.position.x - CAMERA.offset.x > SCREEN_WIDTH - 100 \
                 or self.position.y - CAMERA.offset.y < 100 \
                     or self.position.y - CAMERA.offset.y > SCREEN_HEIGHT - 100:
+            self.is_onscreen = False
             return
+        else:
+            self.is_onscreen = True
 
         # super().update() # this is the SteeringBehaviour update() and isn't working - perhaps because there are multiple inherited classes?
         self.update_steering()
@@ -178,6 +182,13 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
     #         pygame.draw.rect(APP_SCREEN, Colors.WHITE, self.rect, 2)
 
     def draw(self):
+        # if self.position.x - CAMERA.offset.x < 100 \
+        #     or self.position.x - CAMERA.offset.x > SCREEN_WIDTH - 100 \
+        #         or self.position.y - CAMERA.offset.y < 100 \
+        #             or self.position.y - CAMERA.offset.y > SCREEN_HEIGHT - 100:
+        if not self.is_onscreen:
+            return
+
         # only show agents within "sight" of the player
         if self.hide_out_of_sight:
             if self.position.distance_to(self.target.position) > self.max_sight:

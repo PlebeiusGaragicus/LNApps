@@ -1,7 +1,7 @@
 {
     "name": "Your Frens are Fishy!",
     "debug": false,
-    "skip_to_gameplay": false,
+    "skip_to_gameplay": true,
     "starting_level": 1,
     "draw_masks": true
 }
