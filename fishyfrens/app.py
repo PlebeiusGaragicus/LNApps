@@ -130,7 +130,7 @@ class App(Singleton):
                 self.viewmanager.update()
                 self.viewmanager.draw()
 
-                pygame.display.update() # TODO is this needed?
+                # pygame.display.update() # TODO is this needed?
                 pygame.display.flip()
                 self.clock.tick(FPS)
 

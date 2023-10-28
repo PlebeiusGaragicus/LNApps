@@ -7,11 +7,13 @@ logger = logging.getLogger()
 
 from gamelib.globals import *
 from gamelib.colors import Colors
+from gamelib.utils import lerp_color
 
 import fishyfrens.debug as debug
 from fishyfrens.config import *
 from fishyfrens.app import MY_DIR
 from fishyfrens.view.camera import CAMERA
+from fishyfrens.audio import AUDIO
 
 
 
@@ -174,18 +176,17 @@ class Player(pygame.sprite.Sprite):
 
     #     self.draw_life_bar()
 
-    # def boost(self):
-    #     self.velocity += self.velocity.normalize() * 10
-    #     self.boost_time = time.time() + 3
+
     def boost(self):
-        # AUDIO.boost()
         if self.life > 20:
+            AUDIO.boost()
             self.life -= 8
+            self.velocity += self.velocity.normalize() * 3
+            self.boost_time = time.time() + 1  # Set the boost time to 3 seconds in the future
+            # TODO make a wave effect with particles or something
         else:
             # AUDIO.too_tired()   # TODO:
-            return
-        self.velocity += self.velocity.normalize() * 3
-        self.boost_time = time.time() + 1  # Set the boost time to 3 seconds in the future
+            pass
 
 
 
@@ -208,7 +209,9 @@ class Player(pygame.sprite.Sprite):
 
         life_bar_fill_rect = pygame.Rect(life_bar_x + 2, life_bar_y + 2, life_bar_width - 4, life_bar_height - 4)
         life_bar_fill_rect.width = int(life_bar_fill_rect.width * (self.life / 100))
-        pygame.draw.rect(APP_SCREEN, Colors.RED, life_bar_fill_rect)
+
+        color = lerp_color(Colors.RED, Colors.GREEN, self.life / 100)
+        pygame.draw.rect(APP_SCREEN, color, life_bar_fill_rect)
 
 
     def bounce_off_walls(self, attenuate: bool = False):

@@ -267,7 +267,6 @@ class GameplayView(View):
         if self.cooldown_keys[KEY_RIGHT].run(key=key):
             self.player.acceleration.x += PLAYER_ACCELERATION
         if self.cooldown_keys[KEY_SPACE].run(key=key):
-            AUDIO.boost()
             self.player.boost()
 
 

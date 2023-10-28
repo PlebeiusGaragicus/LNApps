@@ -11,3 +11,20 @@ def lerp(a, b, t):
     - float: Interpolated value
     """
     return a + (b - a) * t
+
+
+# lerp but for colors:
+def lerp_color(a, b, t):
+    """
+    Linear interpolation between colors a and b by an amount t.
+
+    Parameters:
+    - a (tuple): Start color
+    - b (tuple): End color
+    - t (float): Interpolation factor, typically between 0 and 1
+
+    Returns:
+    - tuple: Interpolated color
+    """
+    # NOTE: this is a bit of a hack, but it works
+    return tuple([lerp(a[i], b[i], t) for i in range(len(a))])

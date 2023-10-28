@@ -19,7 +19,7 @@ from fishyfrens.view.camera import CAMERA
 # TODO: For the edge of the screen??? the wall boundary?  Nah, fix this
 SAFE_BUFFER = 100
 
-VIEW_OPTO_PIXEL_DISTANCE = -50
+VIEW_OPTO_PIXEL_DISTANCE = -150 # how far off screen to draw agents
 
 
 class AgentType(enum.Enum):
@@ -55,24 +55,24 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
             random.randint(-1, 1)
         )
 
-        self.image_orientation: pygame.Vector2 = pygame.Vector2(0, -1)
-
         self.type = type
         if type == AgentType.Dot:
             self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'dotfish.png')).convert_alpha()
+            self.image_orientation: pygame.Vector2 = pygame.Vector2(0, 1) # facing down
             SteeringBehaviour.__init__(self,
                                        mass=1,
                                        position=position,
-                                       max_speed=1.8,
-                                       max_force=0.5,
+                                       max_speed=2.1,
+                                       max_force=0.6,
                                        velocity=velocity,
-                                       decay_rate=8,
+                                       decay_rate=6,
                                        max_sight=400,
                                        behavior_type=BehaviorType.FLEE)
 
         elif type == AgentType.Shrimp:
             r = random.randint(1, 3)
             self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', f'shrimp{r}.png')).convert_alpha()
+            self.image_orientation: pygame.Vector2 = pygame.Vector2(-1, 0) # facing left
             SteeringBehaviour.__init__(self,
                                        mass=1,
                                        position=position,
@@ -87,7 +87,8 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
             self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'kraken.png')).convert_alpha()
             # scale_by = 1
             # self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * scale_by), int(self.image.get_height() * scale_by)))
-            self.image_orientation = pygame.Vector2(-1, 1)
+            # self.image_orientation = pygame.Vector2(-1, 1)
+            self.image_orientation = pygame.Vector2(0, 1) # facing down
 
             # override the velocity to make the crabs slow
             velocity = pygame.Vector2( random.randint(-4, 4), random.randint(-4, 4) ) / 10
