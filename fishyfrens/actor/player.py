@@ -179,6 +179,11 @@ class Player(pygame.sprite.Sprite):
     #     self.boost_time = time.time() + 3
     def boost(self):
         # AUDIO.boost()
+        if self.life > 20:
+            self.life -= 8
+        else:
+            # AUDIO.too_tired()   # TODO:
+            return
         self.velocity += self.velocity.normalize() * 3
         self.boost_time = time.time() + 1  # Set the boost time to 3 seconds in the future
 

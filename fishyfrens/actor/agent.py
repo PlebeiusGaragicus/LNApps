@@ -19,6 +19,7 @@ from fishyfrens.view.camera import CAMERA
 # TODO: For the edge of the screen??? the wall boundary?  Nah, fix this
 SAFE_BUFFER = 100
 
+VIEW_OPTO_PIXEL_DISTANCE = -50
 
 
 class AgentType(enum.Enum):
@@ -129,10 +130,10 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
         # if agent position is visible on screen given camera offset
         # NOTE: increases framerate on Dell Wyse from ~10 to ~
         # TODO: do the same with draw...
-        if self.position.x - CAMERA.offset.x < 100 \
-            or self.position.x - CAMERA.offset.x > SCREEN_WIDTH - 100 \
-                or self.position.y - CAMERA.offset.y < 100 \
-                    or self.position.y - CAMERA.offset.y > SCREEN_HEIGHT - 100:
+        if self.position.x - CAMERA.offset.x < VIEW_OPTO_PIXEL_DISTANCE \
+            or self.position.x - CAMERA.offset.x > SCREEN_WIDTH - VIEW_OPTO_PIXEL_DISTANCE \
+                or self.position.y - CAMERA.offset.y < VIEW_OPTO_PIXEL_DISTANCE \
+                    or self.position.y - CAMERA.offset.y > SCREEN_HEIGHT - VIEW_OPTO_PIXEL_DISTANCE:
             self.is_onscreen = False
             return
         else:

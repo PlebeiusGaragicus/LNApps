@@ -303,20 +303,27 @@ class GameplayView(View):
 
     def handle_collisions(self):
         # find all agents within the screen
-        visible_agents = pygame.sprite.Group()
+        agents_within_proximity = pygame.sprite.Group()
         # for agent in self.actor_group:
         #     if agent.position.x - CAMERA.offset.x < 100 \
         #     or agent.position.x - CAMERA.offset.x > SCREEN_WIDTH - 100 \
         #         or agent.position.y - CAMERA.offset.y < 100 \
         #             or agent.position.y - CAMERA.offset.y > SCREEN_HEIGHT - 100:
-        for agent in self.actor_group:
-            if agent.is_onscreen:
-                visible_agents.add(agent)
+        # for agent in self.actor_group:
+        #     if agent.is_onscreen:
+        #         visible_agents.add(agent)
 
-        print(f"% of visible agents: {len(visible_agents) / len(self.actor_group)}")
+        for agent in self.actor_group:
+            # distance from player to agent
+            distance = self.player.position.distance_to(agent.position)
+            if distance < 150: # this doesn't always work... HMMM... fucking arbitrary... # TODO
+                agents_within_proximity.add(agent)
+
+        # print(f"% of visible agents: {len(visible_agents) / len(self.actor_group)}")
+        logger.debug(f"visible agents: {len(agents_within_proximity)} / fps: {App.get_instance().clock.get_fps():.0f}")
 
         # collisions = pygame.sprite.spritecollide(self.player, self.actor_group, False, pygame.sprite.collide_mask)
-        collisions = pygame.sprite.spritecollide(self.player, visible_agents, False, pygame.sprite.collide_mask)
+        collisions = pygame.sprite.spritecollide(self.player, agents_within_proximity, False, pygame.sprite.collide_mask)
         for agent in collisions:
             # agent.dead = True
             if agent.type == AgentType.Dot:
