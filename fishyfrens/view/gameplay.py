@@ -8,6 +8,8 @@ import pygame
 
 from gamelib.colors import Colors, arcade_color
 from gamelib.globals import APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
+from gamelib import globals
+
 # from gamelib.cooldown_keys import CooldownKey, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT
 from gamelib.cooldown_keys import *
 from gamelib.viewstate import View
@@ -215,7 +217,13 @@ class GameplayView(View):
             elif event.key == pygame.K_b:
                 debug.DRAW_STATS = not debug.DRAW_STATS
             elif event.key == pygame.K_k:
-                self.player.life = 0
+                self.player.life = 0 # TODO: call player.kill?
+            elif event.key == pygame.K_RIGHTBRACKET:
+                globals.PLAYFIELD_WIDTH += 100
+                globals.PLAYFIELD_HEIGHT += 100
+            elif event.key == pygame.K_LEFTBRACKET:
+                globals.PLAYFIELD_WIDTH -= 100
+                globals.PLAYFIELD_HEIGHT -= 100
 
             if event.key == pygame.K_l: # kill all agents
                 # self.player.fire()
@@ -312,14 +320,17 @@ class GameplayView(View):
         #     if agent.is_onscreen:
         #         visible_agents.add(agent)
 
+        # TODO play around with these algorithms... set visible_onscreen to false for all agents we aren't calculating to visualise effectiveness
+
         for agent in self.actor_group:
             # distance from player to agent
             distance = self.player.position.distance_to(agent.position)
             if distance < 150: # this doesn't always work... HMMM... fucking arbitrary... # TODO
                 agents_within_proximity.add(agent)
 
+        # TODO print important performance metrics here
         # print(f"% of visible agents: {len(visible_agents) / len(self.actor_group)}")
-        logger.debug(f"visible agents: {len(agents_within_proximity)} / fps: {App.get_instance().clock.get_fps():.0f}")
+        # logger.debug(f"visible agents: {len(agents_within_proximity)} / fps: {App.get_instance().clock.get_fps():.0f}")
 
         # collisions = pygame.sprite.spritecollide(self.player, self.actor_group, False, pygame.sprite.collide_mask)
         collisions = pygame.sprite.spritecollide(self.player, agents_within_proximity, False, pygame.sprite.collide_mask)

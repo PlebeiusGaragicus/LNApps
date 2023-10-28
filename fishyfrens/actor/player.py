@@ -11,7 +11,7 @@ from gamelib.utils import lerp_color
 
 import fishyfrens.debug as debug
 from fishyfrens.config import *
-from fishyfrens.app import MY_DIR
+from fishyfrens.app import App, MY_DIR
 from fishyfrens.view.camera import CAMERA
 from fishyfrens.audio import AUDIO
 
@@ -29,6 +29,7 @@ class Player(pygame.sprite.Sprite):
         scale_by = 3
         self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * scale_by), int(self.image.get_height() * scale_by)))
         self.image = pygame.transform.flip(self.image, True, False)
+        self.flipped = False
         self.size = pygame.Vector2(self.image.get_size())
         self.image_orientation: pygame.Vector2 = pygame.Vector2(1, 0)
 
@@ -46,8 +47,8 @@ class Player(pygame.sprite.Sprite):
 
     def update(self):
         if time.time() > self.last_life_loss + 1:
-            self.life -= LIFE_SUCK_RATE
             self.last_life_loss = time.time()
+            self.adjust_life(-LIFE_SUCK_RATE)
 
         ### MOVEMENT AND CONFINEMENT
         # Normalize velocity and acceleration to get direction vectors
@@ -67,7 +68,7 @@ class Player(pygame.sprite.Sprite):
         # If the dot product is less than 0, the acceleration is in a different direction than the velocity (turning)
         if dot_product < 0:
             # Apply resistance to turning by reducing the acceleration
-            self.acceleration *= 0.3 # max_force
+            self.acceleration *= 0.6 # RESISTANCE TO TURNING
         else:
             # If moving in the same direction (or stopped), no need to apply the turning resistance
             self.acceleration *= 1
@@ -98,6 +99,15 @@ class Player(pygame.sprite.Sprite):
         if self.velocity.magnitude() > PLAYER_TOP_SPEED + speed_boost:
             self.velocity = self.velocity.normalize() * (PLAYER_TOP_SPEED + speed_boost)
 
+        # if velocity is negative, flip the image
+        if self.velocity.x < 0.0 and self.flipped == False:
+            print("flipped to TRUE")
+            self.flipped = True
+            self.image = pygame.transform.flip(self.image, False, True)
+        elif self.velocity.x > 0.0 and self.flipped == True:
+            print("FLIPPED to false")
+            self.flipped = False
+            self.image = pygame.transform.flip(self.image, False, True)
 
         self.position += self.velocity
         self.bounce_off_walls(attenuate=True)
@@ -180,7 +190,7 @@ class Player(pygame.sprite.Sprite):
     def boost(self):
         if self.life > 20:
             AUDIO.boost()
-            self.life -= 8
+            self.adjust_life(-8)
             self.velocity += self.velocity.normalize() * 3
             self.boost_time = time.time() + 1  # Set the boost time to 3 seconds in the future
             # TODO make a wave effect with particles or something
@@ -233,6 +243,9 @@ class Player(pygame.sprite.Sprite):
             self.position.y = PLAYFIELD_HEIGHT - BORDER_WIDTH - self.size.y // 2
 
     def adjust_life(self, amount: int):
+        if App.get_instance().manifest.get("god_mode", False):
+            return
+
         self.life += amount
         self.life = max(0, min(100, self.life))
 

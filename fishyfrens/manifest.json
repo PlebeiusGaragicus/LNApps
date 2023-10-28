@@ -3,5 +3,6 @@
     "debug": false,
     "skip_to_gameplay": true,
     "starting_level": 1,
-    "draw_masks": true
+    "draw_masks": true,
+    "god_mode": true
 }

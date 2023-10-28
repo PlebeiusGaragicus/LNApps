@@ -15,8 +15,19 @@ if platform.system() == "Darwin":
 
 FPS = 80
 BORDER_WIDTH = 6
-PLAYFIELD_WIDTH = 4000
-PLAYFIELD_HEIGHT = 4000
+
+### 1/2x
+PLAYFIELD_WIDTH = 720
+PLAYFIELD_HEIGHT = 449
+
+### 1x - 16L9 - MacOS 15 inch Air - Display size: 1440 x 898 (720 x 449)
+# PLAYFIELD_WIDTH = 1445
+# PLAYFIELD_HEIGHT = 900
+
+### 2x
+PLAYFIELD_WIDTH = 2890
+# PLAYFIELD_HEIGHT = 1800
+
 # PLAYFIELD_WIDTH = 3000
 # PLAYFIELD_HEIGHT = 3000
 # PLAYFIELD_WIDTH = 2000
@@ -28,10 +39,11 @@ LIFE_SUCK_RATE = 1
 AGENT_SPAWN_INTERVAL_SECONDS = 0.05
 # MAX_AGENTS = 900 # 80 FPS MacOS
 # MAX_AGENTS = 2000 # 80 FPS MacOS (after optimization!!!)
-MAX_AGENTS = 4000 # Very playable on MacOS - can lag when screen crowded & with vectors/mask drawn
+# MAX_AGENTS = 4000 # Very playable on MacOS - can lag when screen crowded & with vectors/mask drawn
 # MAX_AGENTS = 1500 # 53 FPS MacOS / ~35-45 on arcade
 # MAX_AGENTS = 1000 # 70-80 FPS MacOS / 
-MAX_AGENTS = 5000 # 40-50 FPS MacOS / SHIT on arcade
+# MAX_AGENTS = 5000 # 40-50 FPS MacOS / SHIT on arcade
+MAX_AGENTS = 200
 
 
 ## PLAYER

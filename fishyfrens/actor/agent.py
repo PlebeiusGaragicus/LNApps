@@ -85,6 +85,7 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
                                        decay_rate=6,
                                        max_sight=400,
                                        behavior_type=BehaviorType.FLEE)
+            self.wall_behavior: BoundaryBehaviour = BoundaryBehaviour.Wrap
 
         elif type == AgentType.Shrimp:
             r = random.randint(1, 3)
@@ -101,6 +102,8 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
                                        decay_rate=5,
                                        max_sight=400,
                                        behavior_type=BehaviorType.FLEE)
+            self.wall_behavior: BoundaryBehaviour = BoundaryBehaviour.Wrap
+            
 
         elif type == AgentType.Crab:
             # self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'kraken.png')).convert_alpha()
@@ -125,11 +128,10 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
                                        decay_rate=0.1,
                                        max_sight=300,
                                        behavior_type=BehaviorType.SEEK)
+            self.wall_behavior: BoundaryBehaviour = BoundaryBehaviour.Bounce
 
         else:
             raise Exception(f"Unknown AgentType: {type}")
-
-        self.wall_behavior: BoundaryBehaviour = BoundaryBehaviour.Bounce
     
         # self.image.set_colorkey((0, 0, 0))
         # self.rect = self.image.get_rect()
@@ -220,36 +222,15 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
             if self.position.distance_to(self.target.position) > self.max_sight:
                 return
 
-        angle = self.velocity.angle_to(self.image_orientation)
-        rotated_image = pygame.transform.rotate(self.image, angle)
-
-        # Convert world coordinates to screen coordinates
-        screen_pos = self.position - pygame.Vector2(CAMERA.offset)
-
-        # Draw the sprite at its screen position
-        # APP_SCREEN.blit(rotated_image, screen_pos)
-
-        # self.rect = self.image.get_rect(topleft=pos)
+    
+        screen_pos = self.position - pygame.Vector2(CAMERA.offset) # Convert world coordinates to screen coordinates
 
         if debug.DRAW_MASKS:
-            # mask_surface = pygame.Surface(self.mask.get_size(), pygame.SRCALPHA)
-            # mask_surface.fill((255, 0, 0, 100))
-            # APP_SCREEN.blit(mask_surface, screen_pos, None, pygame.BLEND_RGBA_MULT)
-
-            # _img = pygame.transform.rotate(self.mask.to_surface(), self.velocity.angle_to(self.image_orientation))
-
             _img = self.mask.to_surface()
             _img.set_colorkey((0, 0, 0))
             APP_SCREEN.blit(_img, screen_pos)
-
-            # mask_surface = pygame.Surface(rotated_image.get_size(), pygame.SRCALPHA)
-            # mask_surface.fill((255, 0, 0, 100))  # Red with alpha transparency
-            # mask_surface.blit(rotated_image, (0, 0), None, pygame.BLEND_RGBA_MULT)
-            # APP_SCREEN.blit(mask_surface, screen_pos)
         else:
-            # APP_SCREEN.blit(rotated_image, screen_pos)
             APP_SCREEN.blit(self.rotated_image, screen_pos)
-
         
         if debug.DRAW_VECTORS:
             self.draw_vectors()
@@ -266,14 +247,17 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
         if self.position.x < 0:
             self.position.x = 0
             self.velocity.x *= -AGENT_WALL_BOUNCE_ATTENUATION if attenuate else -1
+
         if self.position.x > PLAYFIELD_WIDTH - self.size.x:
             self.position.x = PLAYFIELD_WIDTH - self.size.x
             self.velocity.x *= -AGENT_WALL_BOUNCE_ATTENUATION if attenuate else -1
+
         if self.position.y < 0:
             self.position.y = 0
             self.velocity.y *= -AGENT_WALL_BOUNCE_ATTENUATION if attenuate else -1
-        if self.position.y > PLAYFIELD_WIDTH - self.size.y:
-            self.position.y = PLAYFIELD_WIDTH - self.size.y
+
+        if self.position.y > PLAYFIELD_HEIGHT - self.size.y:
+            self.position.y = PLAYFIELD_HEIGHT - self.size.y
             self.velocity.y *= -AGENT_WALL_BOUNCE_ATTENUATION if attenuate else -1
 
 
@@ -284,6 +268,6 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
         if self.position.x > PLAYFIELD_WIDTH - self.size.x:
             self.position.x = 0
         if self.position.y < 0:
-            self.position.y = PLAYFIELD_WIDTH - self.size.x
-        if self.position.y > PLAYFIELD_WIDTH - self.size.x:
+            self.position.y = PLAYFIELD_HEIGHT - self.size.x
+        if self.position.y > PLAYFIELD_HEIGHT - self.size.x:
             self.position.y = 0
