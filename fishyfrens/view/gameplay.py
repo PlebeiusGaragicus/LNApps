@@ -7,9 +7,11 @@ logger = logging.getLogger()
 
 import pygame
 
-from gamelib.colors import Colors, arcade_color
 from gamelib.globals import APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
-from gamelib import globals
+# from gamelib import globals
+from gamelib.colors import Colors, arcade_color
+from gamelib.utils import lerp
+
 
 # from gamelib.cooldown_keys import CooldownKey, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT
 from gamelib.cooldown_keys import *
@@ -133,6 +135,9 @@ class GameplayView(View):
 
 
     def draw(self):
+        # APP_SCREEN.fill( (3, 32, 50) ) # (3, 192, 60) DARK_PASTEL_GREEN
+
+        # bg_color = lerp()
         APP_SCREEN.fill( (3, 32, 50) ) # (3, 192, 60) DARK_PASTEL_GREEN
 
         self.draw_playfield_boarder()
@@ -150,12 +155,14 @@ class GameplayView(View):
             a.draw()
 
         self.player.draw()
+
+        # VIGNETTE
         APP_SCREEN.blit(vignette_surface, (self.player.position.x - CAMERA.offset.x - vignette_surface.get_width() // 2, self.player.position.y - CAMERA.offset.y - vignette_surface.get_height() //2), special_flags=pygame.BLEND_RGBA_MULT)
 
         self.player.draw_life_bar()
         text(APP_SCREEN, f"Score: {self.score}", (SCREEN_WIDTH // 2, 20), font_size=40, color=arcade_color.YELLOW_ORANGE, center=True)
 
-        self.parallax_background.draw()
+        # self.parallax_background.draw() # TODO: Performance is not acceptable on arcade
 
         # vignette_surface = create_vignette_surface(300)
 

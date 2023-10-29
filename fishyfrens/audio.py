@@ -12,9 +12,9 @@ class SoundMaster:
         # pygame.mixer.music.play(-1)  # The -1 means the music will loop indefinitely
 
         self.dink_effect = pygame.mixer.Sound( os.path.join(MY_DIR, 'resources', 'sounds', 'dink_short.wav') )
-        self.oww_effect1 = pygame.mixer.Sound( os.path.join(MY_DIR, 'resources', 'sounds', 'oww1.wav') )
-        self.oww_effect2 = pygame.mixer.Sound( os.path.join(MY_DIR, 'resources', 'sounds', 'oww2.wav') )
-        self.oww_effect3 = pygame.mixer.Sound( os.path.join(MY_DIR, 'resources', 'sounds', 'oww3.wav') )
+        self.oww_effect1 = pygame.mixer.Sound( os.path.join(MY_DIR, 'resources', 'sounds', 'coww1.wav') )
+        self.oww_effect2 = pygame.mixer.Sound( os.path.join(MY_DIR, 'resources', 'sounds', 'coww2.wav') )
+        self.oww_effect3 = pygame.mixer.Sound( os.path.join(MY_DIR, 'resources', 'sounds', 'coww3.wav') )
         self.boost_effect = pygame.mixer.Sound( os.path.join(MY_DIR, 'resources', 'sounds', 'boost.wav') )
 
         self.you_died_effect = pygame.mixer.Sound( os.path.join(MY_DIR, 'resources', 'sounds', 'you_died.wav') )
