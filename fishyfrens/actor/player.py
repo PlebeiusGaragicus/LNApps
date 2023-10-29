@@ -101,11 +101,9 @@ class Player(pygame.sprite.Sprite):
 
         # if velocity is negative, flip the image
         if self.velocity.x < 0.0 and self.flipped == False:
-            print("flipped to TRUE")
             self.flipped = True
             self.image = pygame.transform.flip(self.image, False, True)
         elif self.velocity.x > 0.0 and self.flipped == True:
-            print("FLIPPED to false")
             self.flipped = False
             self.image = pygame.transform.flip(self.image, False, True)
 
@@ -226,21 +224,32 @@ class Player(pygame.sprite.Sprite):
 
     def bounce_off_walls(self, attenuate: bool = False):
         # TODO - this is poor collision detection, but it works for now
-        if self.position.x < BORDER_WIDTH:
-            self.velocity.x = abs(self.velocity.x) * PLAYER_WALL_BOUNCE_ATTENUATION if attenuate else abs(self.velocity.x)
-            self.position.x = BORDER_WIDTH
+        # if self.position.x < BORDER_WIDTH - self.size.x // 2:
+        #     self.velocity.x = abs(self.velocity.x) * PLAYER_WALL_BOUNCE_ATTENUATION if attenuate else abs(self.velocity.x)
+        #     self.position.x = BORDER_WIDTH - self.size.x // 2
+        
+        # if self.position.x > PLAYFIELD_WIDTH - BORDER_WIDTH - self.size.x:
+        #     self.velocity.x = -abs(self.velocity.x) * PLAYER_WALL_BOUNCE_ATTENUATION if attenuate else -abs(self.velocity.x)
+        #     self.position.x = PLAYFIELD_WIDTH - BORDER_WIDTH - self.size.x
 
-        if self.position.x > PLAYFIELD_WIDTH - BORDER_WIDTH - self.size.x // 2:
-            self.velocity.x = -abs(self.velocity.x) * PLAYER_WALL_BOUNCE_ATTENUATION if attenuate else -abs(self.velocity.x)
-            self.position.x = PLAYFIELD_WIDTH - BORDER_WIDTH - self.size.x // 2
+        # self.position.x = max(BORDER_WIDTH - self.size.x // 2, self.position.x)
+        self.position.x = max(0, self.position.x)
+        # self.position.x = min(PLAYFIELD_WIDTH - BORDER_WIDTH - self.size.y, self.position.x)
+        self.position.x = min(PLAYFIELD_WIDTH - self.size.x, self.position.x)
 
-        if self.position.y < BORDER_WIDTH:
-            self.velocity.y = abs(self.velocity.y) * PLAYER_WALL_BOUNCE_ATTENUATION if attenuate else abs(self.velocity.y)
-            self.position.y = BORDER_WIDTH
+        # if self.position.y < BORDER_WIDTH - self.size.y // 3:
+        #     self.velocity.y = abs(self.velocity.y) * PLAYER_WALL_BOUNCE_ATTENUATION if attenuate else abs(self.velocity.y)
+        #     self.position.y = BORDER_WIDTH - self.size.y // 3
 
-        if self.position.y > PLAYFIELD_HEIGHT - BORDER_WIDTH - self.size.y // 2:
-            self.velocity.y = -abs(self.velocity.y) * PLAYER_WALL_BOUNCE_ATTENUATION if attenuate else -abs(self.velocity.y)
-            self.position.y = PLAYFIELD_HEIGHT - BORDER_WIDTH - self.size.y // 2
+        # # NOTE: position is actually the top-left of the player rect, so we need to add the full height to the player's bottom side
+        # if self.position.y > PLAYFIELD_HEIGHT - BORDER_WIDTH - self.size.y:
+        #     self.velocity.y = -abs(self.velocity.y) * PLAYER_WALL_BOUNCE_ATTENUATION if attenuate else -abs(self.velocity.y)
+        #     self.position.y = PLAYFIELD_HEIGHT - BORDER_WIDTH - self.size.y
+
+        # self.position.y = max(BORDER_WIDTH - self.size.y // 2, self.position.y)
+        self.position.y = max(0, self.position.y)
+        # self.position.y = min(PLAYFIELD_HEIGHT - BORDER_WIDTH - self.size.y, self.position.y)
+        self.position.y = min(PLAYFIELD_HEIGHT - self.size.y * 2, self.position.y)
 
     def adjust_life(self, amount: int):
         if App.get_instance().manifest.get("god_mode", False):

@@ -21,6 +21,7 @@ from fishyfrens.app import App
 from fishyfrens.actor.player import Player
 from fishyfrens.actor.agent import Agent, AgentType
 from fishyfrens.view.camera import CAMERA
+from fishyfrens.parallax import ParallaxBackground
 from fishyfrens.audio import AUDIO
 
 
@@ -65,6 +66,8 @@ class GameplayView(View):
         self.player: Player = Player()
         CAMERA.target = self.player
         self.actor_group = pygame.sprite.Group()
+        # self.parallax_background = ParallaxBackground(PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT, 0.5)
+        self.parallax_background = ParallaxBackground()
 
         for key in self.cooldown_keys.values():
             key.reset()
@@ -81,10 +84,8 @@ class GameplayView(View):
         # self.actor_group.update(player=self.player)
         self.actor_group.update()
 
-
         self.handle_cooldown_keys()
         self.player.update()
-
 
         if self.level == 1:
             self.level1()
@@ -94,6 +95,8 @@ class GameplayView(View):
         # self.handle_collisions() # level functions must handle their own agent generation and collisions
 
         CAMERA.update() # this should be done last
+        self.parallax_background.update()
+
 
 
 
@@ -118,6 +121,8 @@ class GameplayView(View):
         self.player.draw()
         self.player.draw_life_bar()
         text(APP_SCREEN, f"Score: {self.score}", (SCREEN_WIDTH // 2, 20), font_size=40, color=arcade_color.YELLOW_ORANGE, center=True)
+
+        self.parallax_background.draw()
 
         # self.draw_effects()
 
@@ -160,24 +165,34 @@ class GameplayView(View):
 
     def draw_playfield_boarder(self):
         # draw a line from 0,0 to 0, screen height using pygame
-        _start = pygame.Vector2(-CAMERA.offset.x, -CAMERA.offset.y)
-        _end = pygame.Vector2(-CAMERA.offset.x, -CAMERA.offset.y + PLAYFIELD_HEIGHT)
-        pygame.draw.line(APP_SCREEN, Colors.MAGENTA, _start, _end, BORDER_WIDTH)
+        # LEFT BOUNDARY
+        # _start = pygame.Vector2(-CAMERA.offset.x, -CAMERA.offset.y)
+        # _end = pygame.Vector2(-CAMERA.offset.x, -CAMERA.offset.y + PLAYFIELD_HEIGHT)
+        # pygame.draw.line(APP_SCREEN, arcade_color.COOL_BLACK, _start, _end, BORDER_WIDTH)
+        pygame.draw.rect(APP_SCREEN, arcade_color.BLACK, (0, 0, -int(CAMERA.offset.x), SCREEN_HEIGHT), int(-CAMERA.offset.x))
 
         # draw a line from 0,0 to screen width, 0 using pygame
-        _start = pygame.Vector2(-CAMERA.offset.x, -CAMERA.offset.y)
-        _end = pygame.Vector2(-CAMERA.offset.x + PLAYFIELD_WIDTH, -CAMERA.offset.y)
-        pygame.draw.line(APP_SCREEN, Colors.MAGENTA, _start, _end, BORDER_WIDTH)
+        # TOP BOUNDARY
+        # _start = pygame.Vector2(-CAMERA.offset.x, -CAMERA.offset.y)
+        # _end = pygame.Vector2(-CAMERA.offset.x + PLAYFIELD_WIDTH, -CAMERA.offset.y)
+        # pygame.draw.line(APP_SCREEN, arcade_color.COOL_BLACK, _start, _end, BORDER_WIDTH)
+        pygame.draw.rect(APP_SCREEN, arcade_color.BLACK, (-CAMERA.offset.x, 0, CAMERA.offset.x + SCREEN_WIDTH, -int(CAMERA.offset.y)), int(-CAMERA.offset.y))
 
         # draw a line from screen width, 0 to screen width, screen height using pygame
-        _start = pygame.Vector2(-CAMERA.offset.x + PLAYFIELD_WIDTH, -CAMERA.offset.y)
-        _end = pygame.Vector2(-CAMERA.offset.x + PLAYFIELD_WIDTH, -CAMERA.offset.y + PLAYFIELD_HEIGHT)
-        pygame.draw.line(APP_SCREEN, Colors.MAGENTA, _start, _end, BORDER_WIDTH)
+        # RIGHT BOUNDARY
+        # _start = pygame.Vector2(-CAMERA.offset.x + PLAYFIELD_WIDTH, -CAMERA.offset.y)
+        # _end = pygame.Vector2(-CAMERA.offset.x + PLAYFIELD_WIDTH, -CAMERA.offset.y + PLAYFIELD_HEIGHT)
+        # pygame.draw.line(APP_SCREEN, arcade_color.COOL_BLACK, _start, _end, BORDER_WIDTH)
+        pygame.draw.rect(APP_SCREEN, arcade_color.BLACK, (-CAMERA.offset.x + PLAYFIELD_WIDTH, 0, -CAMERA.offset.x + PLAYFIELD_WIDTH, SCREEN_HEIGHT), CAMERA.camera_overpan_x)
 
         # draw a line from 0, screen height to screen width, screen height using pygame
-        _start = pygame.Vector2(-CAMERA.offset.x, -CAMERA.offset.y + PLAYFIELD_HEIGHT)
-        _end = pygame.Vector2(-CAMERA.offset.x + PLAYFIELD_WIDTH, -CAMERA.offset.y + PLAYFIELD_HEIGHT)
-        pygame.draw.line(APP_SCREEN, Colors.MAGENTA, _start, _end, BORDER_WIDTH)
+        # BOTTOM BOUNDARY
+        # _start = pygame.Vector2(-CAMERA.offset.x, -CAMERA.offset.y + PLAYFIELD_HEIGHT)
+        # _end = pygame.Vector2(-CAMERA.offset.x + PLAYFIELD_WIDTH, -CAMERA.offset.y + PLAYFIELD_HEIGHT)
+        # pygame.draw.line(APP_SCREEN, arcade_color.COOL_BLACK, _start, _end, BORDER_WIDTH)
+        # draw a rect from 0,0 to screen width, screen height using pygame
+        # TODO: these numbers aren't right... but it works for now (it's overdrawing off the screen)
+        pygame.draw.rect(APP_SCREEN, arcade_color.BLACK, (-CAMERA.offset.x, -CAMERA.offset.y + PLAYFIELD_HEIGHT, CAMERA.offset.x + SCREEN_WIDTH, SCREEN_HEIGHT), SCREEN_HEIGHT + int(CAMERA.offset.y) + PLAYFIELD_HEIGHT)
 
 
 

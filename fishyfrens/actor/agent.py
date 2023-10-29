@@ -120,13 +120,13 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
                                        mass=1,
                                        position=position,
                                     #    max_speed=1.7,
-                                       max_speed=3,
+                                       max_speed=4,
                                     #    max_force=0.3,
-                                       max_force=0.3,
+                                       max_force=0.8,
                                        velocity=velocity,
                                     #    decay_rate=1.5,
-                                       decay_rate=0.1,
-                                       max_sight=300,
+                                       decay_rate=0.05,
+                                       max_sight=500,
                                        behavior_type=BehaviorType.SEEK)
             self.wall_behavior: BoundaryBehaviour = BoundaryBehaviour.Bounce
 

@@ -1,3 +1,5 @@
+from icecream import ic
+
 import pygame
 
 from gamelib.globals import SCREEN_WIDTH, SCREEN_HEIGHT
@@ -8,46 +10,58 @@ from fishyfrens.config import *
 # BUFFER = SCREEN_WIDTH // 3
 # BUFFER = min(100, SCREEN_WIDTH // 3)
 
+# def resize_playfield(width: int, height: int) -> None:
+#     # self.camera_overpan = min(100, SCREEN_WIDTH // 3)
+#     pass
+
+# CAMERA_LERP = 0.2
+# CAMERA_LERP = 0.04
+CAMERA_LERP = 0.2
 
 class Camera:
     def __init__(self):
         self.offset = pygame.Vector2(0, 0)
         self.target = None
-        # self.camera_overpan = None
         self.camera_overpan_x = min(100, PLAYFIELD_WIDTH // 3)
         self.camera_overpan_y = min(100, PLAYFIELD_HEIGHT // 3)
+        # self.camera_overpan_x = 0
+        # self.camera_overpan_y = 0
 
-    def resize_playfield(width: int, height: int) -> None:
-        # self.camera_overpan = min(100, SCREEN_WIDTH // 3)
-        pass
+        self.player_ratio_x = 0
+        self.player_ratio_y = 0
 
     def update(self):
-
         if self.target == None:
             self.offset = pygame.Vector2(0, 0)
             return
 
         if PLAYFIELD_WIDTH > SCREEN_WIDTH:
-            # player_ratio_x = self.target.rect.x / ( PLAYFIELD_WIDTH - self.camera_overpan_x )
-            player_ratio_x = self.target.rect.x / ( PLAYFIELD_WIDTH )
-            max_camera_x = PLAYFIELD_WIDTH - SCREEN_WIDTH + self.camera_overpan_x
-            # offx = max_camera_x * player_ratio_x - BUFFER // 3
-            offx = max_camera_x * player_ratio_x - self.camera_overpan_x // 2
-            self.offset.x = lerp(self.offset.x, offx, 0.2) # 0.02
+            self.player_ratio_x = self.target.rect.x / ( PLAYFIELD_WIDTH - self.camera_overpan_x - self.target.rect.width)
+            max_camera_x = PLAYFIELD_WIDTH - SCREEN_WIDTH + self.camera_overpan_x // 2
+            offx = max_camera_x * self.player_ratio_x - self.camera_overpan_x // 2
+            self.offset.x = lerp(self.offset.x, offx, CAMERA_LERP)
+            # print(self.offset.x)
         else:
-            # centered
-            # self.offset.x = SCREEN_WIDTH // 2 - PLAYFIELD_WIDTH // 2
-            self.offset.x = -(PLAYFIELD_WIDTH // 2)
+            self.offset.x = -(PLAYFIELD_WIDTH // 2) # centered
 
         if PLAYFIELD_HEIGHT > SCREEN_HEIGHT:
-            # player_ratio_y = self.target.rect.y / ( PLAYFIELD_HEIGHT - self.camera_overpan_y )
-            player_ratio_y = self.target.rect.y / PLAYFIELD_HEIGHT
-            max_camera_y = PLAYFIELD_HEIGHT - SCREEN_HEIGHT + self.camera_overpan_y
-            # offy = max_camera_y * player_ratio_y - BUFFER // 3
-            offy = max_camera_y * player_ratio_y - self.camera_overpan_y // 2
-            self.offset.y = lerp(self.offset.y, offy, 0.2)
+            self.player_ratio_y = self.target.rect.y / ( PLAYFIELD_HEIGHT - self.camera_overpan_y - self.target.rect.height * 2) # * 2 because it's an oblong fishy
+            max_camera_y = PLAYFIELD_HEIGHT - SCREEN_HEIGHT + self.camera_overpan_y // 2
+            offy = max_camera_y * self.player_ratio_y - self.camera_overpan_y // 2
+            self.offset.y = lerp(self.offset.y, offy, CAMERA_LERP)
         else:
-            self.offset.y = -(PLAYFIELD_HEIGHT // 2)
+            self.offset.y = -(PLAYFIELD_HEIGHT // 2) # centered
+
+CAMERA: Camera = Camera()
+
+
+
+
+
+
+
+
+
 
         # print(self.offset.x, self.offset.y)
 
@@ -76,6 +90,3 @@ class Camera:
         #     self.offset.y = self.target.rect.y
         # if self.target.rect.bottom > self.offset.y + SCREEN_HEIGHT:
         #     self.offset.y = self.target.rect.y - SCREEN_HEIGHT
-
-
-CAMERA: Camera = Camera()

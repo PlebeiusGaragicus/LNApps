@@ -25,6 +25,8 @@ MY_DIR = os.path.dirname(os.path.abspath(__file__))
 # SCREEN_WIDTH = None
 
 
+SECOND_DISPLAY = False
+
 
 class App(Singleton):
     manifest: dict = None
@@ -59,23 +61,36 @@ class App(Singleton):
         pygame.font.init() # really needed?
         app.clock = pygame.time.Clock()
 
-        _info = pygame.display.Info()
-        app.width, app.height = _info.current_w, _info.current_h
+        # _info = pygame.display.Info()
+        # app.width, app.height = _info.current_w, _info.current_h
 
-        if platform.system() == "Darwin":
-            app.height -= 34 # TODO - this is a hack for the macbook air menu bar / camera cutout
+        # if platform.system() == "Darwin":
+        #     app.height -= 34 # TODO - this is a hack for the macbook air menu bar / camera cutout
 
-        logger.debug("Display size: %s x %s", app.width, app.height)
+        # logger.debug("Display size: %s x %s", app.width, app.height)
 
-        if platform.system() == "Darwin":
-            app.screen = pygame.display.set_mode((app.width, app.height), flags=pygame.NOFRAME | pygame.DOUBLEBUF | pygame.HWSURFACE)
-            # this 'hack' ensures that the newly created window becomes active
-            time.sleep(0.1)
-            pygame.display.toggle_fullscreen()
-            time.sleep(0.1)
-            pygame.display.toggle_fullscreen()
+
+        if SECOND_DISPLAY:
+            app.screen = pygame.display.set_mode(flags=pygame.NOFRAME | pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.FULLSCREEN, display=1)
+            _info = pygame.display.Info()
+            app.width, app.height = _info.current_w, _info.current_h
         else:
-            app.screen = pygame.display.set_mode(flags=pygame.FULLSCREEN | pygame.NOFRAME | pygame.HWSURFACE | pygame.DOUBLEBUF)
+            _info = pygame.display.Info()
+            app.width, app.height = _info.current_w, _info.current_h
+
+            if platform.system() == "Darwin":
+                app.height -= 34 # TODO - this is a hack for the macbook air menu bar / camera cutout
+
+                app.screen = pygame.display.set_mode((app.width, app.height), flags=pygame.NOFRAME | pygame.DOUBLEBUF | pygame.HWSURFACE)
+                # this 'hack' ensures that the newly created window becomes active
+                time.sleep(0.1)
+                pygame.display.toggle_fullscreen()
+                time.sleep(0.1)
+                pygame.display.toggle_fullscreen()
+            else:
+                app.screen = pygame.display.set_mode(flags=pygame.FULLSCREEN | pygame.NOFRAME | pygame.HWSURFACE | pygame.DOUBLEBUF)
+        
+        logger.debug("Display size: %s x %s", app.width, app.height)
 
         pygame.display.set_allow_screensaver(False)
 
@@ -147,7 +162,6 @@ class App(Singleton):
                 logger.exception(e)
                 self.running = False
 
-        print("closing 'properly' ??")
         pygame.quit()
         sys.exit()
 
