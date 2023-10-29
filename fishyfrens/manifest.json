@@ -1,8 +1,9 @@
 {
     "name": "Your Frens are Fishy!",
     "debug": false,
-    "skip_to_gameplay": true,
+    "skip_to_gameplay": false,
     "starting_level": 1,
     "draw_masks": true,
-    "god_mode": true
+    "god_mode": false,
+    "fastswimmer": false
 }

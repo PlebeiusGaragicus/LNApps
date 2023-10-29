@@ -81,7 +81,7 @@ class App(Singleton):
             if platform.system() == "Darwin":
                 app.height -= 34 # TODO - this is a hack for the macbook air menu bar / camera cutout
 
-                app.screen = pygame.display.set_mode((app.width, app.height), flags=pygame.NOFRAME | pygame.DOUBLEBUF | pygame.HWSURFACE)
+                app.screen = pygame.display.set_mode((app.width, app.height), flags=pygame.NOFRAME | pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.SRCALPHA)
                 # this 'hack' ensures that the newly created window becomes active
                 time.sleep(0.1)
                 pygame.display.toggle_fullscreen()

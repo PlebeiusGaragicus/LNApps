@@ -1,3 +1,4 @@
+import os
 import time
 import random
 # import math
@@ -17,13 +18,33 @@ from gamelib.text import text
 
 from fishyfrens import debug
 from fishyfrens.config import *
-from fishyfrens.app import App
+from fishyfrens.app import App, MY_DIR
 from fishyfrens.actor.player import Player
 from fishyfrens.actor.agent import Agent, AgentType
 from fishyfrens.view.camera import CAMERA
 from fishyfrens.parallax import ParallaxBackground
 from fishyfrens.audio import AUDIO
 
+
+
+# def create_vignette_surface(radius, color=(0, 0, 0)):
+#     surface = pygame.Surface((radius*2, radius*2), pygame.SRCALPHA)
+#     for y in range(radius*2):
+#         for x in range(radius*2):
+#             dx = x - radius
+#             dy = y - radius
+#             distance = min(radius, (dx*dx + dy*dy)**0.5)
+#             alpha = (1 - distance / radius) * 255
+#             surface.set_at((x, y), (*color, int(alpha)))
+#     return surface
+
+def create_vignette_surface(radius, color=(0, 0, 0)):
+    surface = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'vignette', 'vdonewhitehuge.png')).convert_alpha()
+    # surface = pygame.transform.scale(surface, (radius, radius))
+    surface.set_colorkey((255, 255, 255))
+    return surface
+
+vignette_surface = create_vignette_surface(1500, (25, 90, 90))
 
 
 class GameplayView(View):
@@ -64,6 +85,11 @@ class GameplayView(View):
         self.alive = True
 
         self.player: Player = Player()
+
+        if App.get_instance().manifest.get("fastswimmer", False):
+            self.player.top_speed = 60
+            self.player.acceleration = 5
+
         CAMERA.target = self.player
         self.actor_group = pygame.sprite.Group()
         # self.parallax_background = ParallaxBackground(PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT, 0.5)
@@ -97,6 +123,11 @@ class GameplayView(View):
         CAMERA.update() # this should be done last
         self.parallax_background.update()
 
+        # #rotate vignette background 1 degree per frame
+        # NOTE: performance is ASS
+        # global vignette_surface
+        # vignette_surface = pygame.transform.rotate(vignette_surface, 1)
+
 
 
 
@@ -119,10 +150,15 @@ class GameplayView(View):
             a.draw()
 
         self.player.draw()
+        APP_SCREEN.blit(vignette_surface, (self.player.position.x - CAMERA.offset.x - vignette_surface.get_width() // 2, self.player.position.y - CAMERA.offset.y - vignette_surface.get_height() //2), special_flags=pygame.BLEND_RGBA_MULT)
+
         self.player.draw_life_bar()
         text(APP_SCREEN, f"Score: {self.score}", (SCREEN_WIDTH // 2, 20), font_size=40, color=arcade_color.YELLOW_ORANGE, center=True)
 
         self.parallax_background.draw()
+
+        # vignette_surface = create_vignette_surface(300)
+
 
         # self.draw_effects()
 

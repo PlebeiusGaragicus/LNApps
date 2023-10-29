@@ -60,7 +60,7 @@ class ParallaxBackground:
 
         self.offset = pygame.Vector2(parallax_offset_x, parallax_offset_y)
 
-        print("coff:", int(CAMERA.offset.x), "poff:", int(self.offset.x), "size:", SCREEN_WIDTH, PLAYFIELD_WIDTH, self.width, "player ratio", CAMERA.player_ratio_x)
+        # print("coff:", int(CAMERA.offset.x), "poff:", int(self.offset.x), "size:", SCREEN_WIDTH, PLAYFIELD_WIDTH, self.width, "player ratio", CAMERA.player_ratio_x)
 
     def draw(self):
         # self.surface.fill((0, 0, 0, 0))  # Clear surface
