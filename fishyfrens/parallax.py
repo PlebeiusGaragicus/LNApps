@@ -5,7 +5,8 @@ import random
 from gamelib.globals import APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
 
 from fishyfrens.config import PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT
-from fishyfrens.view.camera import CAMERA
+# from fishyfrens.view.camera import CAMERA
+from fishyfrens.globals import CAMERA, LEVEL
 
 
 class Particle:

@@ -10,9 +10,13 @@ from gamelib.colors import Colors
 from gamelib.utils import lerp_color
 
 import fishyfrens.debug as debug
-from fishyfrens.config import *
+# from fishyfrens.config import *
+from fishyfrens import config
 from fishyfrens.app import App, MY_DIR
-from fishyfrens.view.camera import CAMERA
+
+# from fishyfrens.view.camera import CAMERA
+from fishyfrens.globals import CAMERA, LEVEL
+
 from fishyfrens.audio import AUDIO
 
 
@@ -22,7 +26,7 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.name = name
         self.top_speed = 6
-        self.position = pygame.Vector2(random.randint(100, PLAYFIELD_WIDTH - 100), random.randint(100, PLAYFIELD_HEIGHT - 100))  # Use Vector2 for position
+        self.position = pygame.Vector2(random.randint(100, config.PLAYFIELD_WIDTH - 100), random.randint(100, config.PLAYFIELD_HEIGHT - 100))  # Use Vector2 for position
         self.velocity = pygame.Vector2(random.randint(-2, 2), random.randint(-2, 2))  # Use Vector2 for velocity
         self.velocity_dampening = 0.98
         self.acceleration = pygame.Vector2(0, 0)
@@ -50,7 +54,7 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         if time.time() > self.last_life_loss + 1:
             self.last_life_loss = time.time()
-            self.adjust_life(-LIFE_SUCK_RATE)
+            self.adjust_life(-LEVEL.life_suck_rate)
 
         ### MOVEMENT AND CONFINEMENT
         # Normalize velocity and acceleration to get direction vectors
@@ -185,7 +189,7 @@ class Player(pygame.sprite.Sprite):
         # self.position.x = max(BORDER_WIDTH - self.size.x // 2, self.position.x)
         self.position.x = max(0, self.position.x)
         # self.position.x = min(PLAYFIELD_WIDTH - BORDER_WIDTH - self.size.y, self.position.x)
-        self.position.x = min(PLAYFIELD_WIDTH - self.size.x, self.position.x)
+        self.position.x = min(config.PLAYFIELD_WIDTH - self.size.x, self.position.x)
 
         # if self.position.y < BORDER_WIDTH - self.size.y // 3:
         #     self.velocity.y = abs(self.velocity.y) * PLAYER_WALL_BOUNCE_ATTENUATION if attenuate else abs(self.velocity.y)
@@ -199,7 +203,7 @@ class Player(pygame.sprite.Sprite):
         # self.position.y = max(BORDER_WIDTH - self.size.y // 2, self.position.y)
         # self.position.y = min(PLAYFIELD_HEIGHT - BORDER_WIDTH - self.size.y, self.position.y)
         self.position.y = max(0, self.position.y)
-        self.position.y = min(PLAYFIELD_HEIGHT - self.size.y * 2, self.position.y)
+        self.position.y = min(config.PLAYFIELD_HEIGHT - self.size.y * 2, self.position.y)
 
     def adjust_life(self, amount: int):
         if App.get_instance().manifest.get("god_mode", False):

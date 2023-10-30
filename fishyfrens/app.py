@@ -17,7 +17,8 @@ from gamelib.logger import setup_logging
 from gamelib.singleton import Singleton
 from gamelib.viewstate import ViewManager
 
-from fishyfrens.config import *
+# from fishyfrens.config import *
+from fishyfrens import config
 
 MY_DIR = os.path.dirname(os.path.abspath(__file__))
 # APP_SCREEN: pygame.Surface = None
@@ -147,7 +148,7 @@ class App(Singleton):
 
                 # pygame.display.update() # TODO is this needed?
                 pygame.display.flip()
-                self.clock.tick(FPS)
+                self.clock.tick(config.FPS)
 
             except KeyboardInterrupt:
                 logger.info("KeyboardInterrupt")

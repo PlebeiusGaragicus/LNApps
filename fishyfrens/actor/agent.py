@@ -9,9 +9,15 @@ from gamelib.globals import APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
 from gamelib.colors import Colors
 
 import fishyfrens.debug as debug
-from fishyfrens.config import *
+# from fishyfrens.config import *
+from fishyfrens import config
 from fishyfrens.app import MY_DIR
-from fishyfrens.view.camera import CAMERA
+
+# from fishyfrens.view.camera import CAMERA
+from fishyfrens.globals import CAMERA
+
+AGENT_WALL_BOUNCE_ATTENUATION = 2.1
+
 
 from fishyfrens.actor import BehaviorType, AgentType, BoundaryBehaviour, SAFE_BUFFER, VIEW_OPTO_PIXEL_DISTANCE
 from fishyfrens.actor.boid import Boid
@@ -35,8 +41,8 @@ class Agent(pygame.sprite.Sprite, Boid):
         pygame.sprite.Sprite.__init__(self)
 
         position = pygame.Vector2(
-            random.randint(SAFE_BUFFER, PLAYFIELD_WIDTH - SAFE_BUFFER),
-            random.randint(SAFE_BUFFER, PLAYFIELD_HEIGHT - SAFE_BUFFER)
+            random.randint(SAFE_BUFFER, config.PLAYFIELD_WIDTH - SAFE_BUFFER),
+            random.randint(SAFE_BUFFER, config.PLAYFIELD_HEIGHT - SAFE_BUFFER)
         )
         
         velocity = pygame.Vector2(
@@ -212,26 +218,26 @@ class Agent(pygame.sprite.Sprite, Boid):
             self.position.x = 0
             self.velocity.x *= -AGENT_WALL_BOUNCE_ATTENUATION if attenuate else -1
 
-        if self.position.x > PLAYFIELD_WIDTH - self.size.x:
-            self.position.x = PLAYFIELD_WIDTH - self.size.x
+        if self.position.x > config.PLAYFIELD_WIDTH - self.size.x:
+            self.position.x = config.PLAYFIELD_WIDTH - self.size.x
             self.velocity.x *= -AGENT_WALL_BOUNCE_ATTENUATION if attenuate else -1
 
         if self.position.y < 0:
             self.position.y = 0
             self.velocity.y *= -AGENT_WALL_BOUNCE_ATTENUATION if attenuate else -1
 
-        if self.position.y > PLAYFIELD_HEIGHT - self.size.y:
-            self.position.y = PLAYFIELD_HEIGHT - self.size.y
+        if self.position.y > config.PLAYFIELD_HEIGHT - self.size.y:
+            self.position.y = config.PLAYFIELD_HEIGHT - self.size.y
             self.velocity.y *= -AGENT_WALL_BOUNCE_ATTENUATION if attenuate else -1
 
 
 
     def wrap_screen(self):
         if self.position.x < 0:
-            self.position.x = PLAYFIELD_WIDTH - self.size.x
-        if self.position.x > PLAYFIELD_WIDTH - self.size.x:
+            self.position.x = config.PLAYFIELD_WIDTH - self.size.x
+        if self.position.x > config.PLAYFIELD_WIDTH - self.size.x:
             self.position.x = 0
         if self.position.y < 0:
-            self.position.y = PLAYFIELD_HEIGHT - self.size.x
-        if self.position.y > PLAYFIELD_HEIGHT - self.size.x:
+            self.position.y = config.PLAYFIELD_HEIGHT - self.size.x
+        if self.position.y > config.PLAYFIELD_HEIGHT - self.size.x:
             self.position.y = 0

@@ -8,7 +8,10 @@ from gamelib.colors import Colors
 from gamelib.globals import APP_SCREEN
 
 from fishyfrens.actor import BehaviorType, NULL_VECTOR
-from fishyfrens.view.camera import CAMERA
+
+# from fishyfrens.view.camera import CAMERA
+from fishyfrens.globals import CAMERA, LEVEL
+
 
 
 

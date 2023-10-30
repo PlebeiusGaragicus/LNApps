@@ -1,5 +1,5 @@
-# from .view.camera import Camera
-# CAMERA: Camera = Camera()
+from fishyfrens.level import Level
+LEVEL: Level = Level()
 
-# from .actor.player import Player
-# PLAYER: Player = Player()
+from fishyfrens.view.camera import Camera
+CAMERA: Camera = Camera()
