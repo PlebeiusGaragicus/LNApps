@@ -404,7 +404,7 @@ class GameplayView(View):
                 self.player.adjust_life(5) # more plentiful
             elif agent.type == AgentType.Crab:
                 self.score -= 3
-                AUDIO.oww()
+                AUDIO.oww( self.player.name )
                 self.player.adjust_life(-15)
 
             # TODO: let's call a callback in order to do cool things before we destroy the agent.

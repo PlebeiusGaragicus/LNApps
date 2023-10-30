@@ -18,8 +18,9 @@ from fishyfrens.audio import AUDIO
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, name = "myca"):
         super().__init__()
+        self.name = name
         self.position = pygame.Vector2(random.randint(100, PLAYFIELD_WIDTH - 100), random.randint(100, PLAYFIELD_HEIGHT - 100))  # Use Vector2 for position
         self.velocity = pygame.Vector2(random.randint(-2, 2), random.randint(-2, 2))  # Use Vector2 for velocity
         self.velocity_dampening = 0.98
