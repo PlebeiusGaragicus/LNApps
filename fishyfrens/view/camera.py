@@ -44,16 +44,12 @@ class Camera:
             raise Exception("Camera should have a target")
             self.offset = pygame.Vector2(0, 0)
             return
-        
-        print(config.PLAYFIELD_WIDTH, SCREEN_WIDTH)
-        print(config.PLAYFIELD_HEIGHT, SCREEN_HEIGHT)
 
         if config.PLAYFIELD_WIDTH > SCREEN_WIDTH:
             self.player_ratio_x = self.target.rect.x / ( config.PLAYFIELD_WIDTH - self.camera_overpan_x - self.target.rect.width)
             max_camera_x = config.PLAYFIELD_WIDTH - SCREEN_WIDTH + self.camera_overpan_x // 2
             offx = max_camera_x * self.player_ratio_x - self.camera_overpan_x // 2
             self.offset.x = lerp(self.offset.x, offx, CAMERA_LERP)
-            # print(self.offset.x)
         else:
             self.offset.x = (config.PLAYFIELD_WIDTH // 2) - SCREEN_WIDTH // 2 # centered
 

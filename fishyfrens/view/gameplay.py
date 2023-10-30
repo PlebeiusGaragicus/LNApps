@@ -144,12 +144,13 @@ class GameplayView(View):
 
 
     def draw(self):
-        # APP_SCREEN.fill( (3, 32, 50) )
+        APP_SCREEN.fill( (23, 21, 25) )
 
-        bg_color = lerp_color((40, 70, 140), (0, 30, 50), self.player.position.y / config.PLAYFIELD_HEIGHT)
-        APP_SCREEN.fill( bg_color ) # (3, 192, 60) DARK_PASTEL_GREEN
-
-        self.draw_playfield_boarder()
+        if LEVEL.depth_gradient:
+            bg_color = lerp_color((40, 70, 140), (0, 30, 50), self.player.position.y / config.PLAYFIELD_HEIGHT)
+        else:
+            bg_color = (3, 32, 50)
+        pygame.draw.rect(APP_SCREEN, bg_color, (-CAMERA.offset.x, -CAMERA.offset.y, config.PLAYFIELD_WIDTH, config.PLAYFIELD_HEIGHT))
 
         # show pressed keys
         pressed_keys = []
@@ -205,6 +206,8 @@ class GameplayView(View):
             else:
                 self.draw_timer_wheel(time_elapsed)
 
+
+
     def draw_effects(self):
         """ TODO: look into a damage vignette effect here: https://stackoverflow.com/questions/56333344/how-to-create-a-taken-damage-red-vignette-effect-in-pygame
         """
@@ -214,39 +217,6 @@ class GameplayView(View):
         APP_SCREEN.blit(fade_surface, (0, 0))
         # draw a circle centered on player will full alpha
         pygame.draw.circle(APP_SCREEN, (0,0,0,0), self.player.position, 100, 100)
-
-
-
-    def draw_playfield_boarder(self):
-        # draw a line from 0,0 to 0, screen height using pygame
-        # LEFT BOUNDARY
-        # _start = pygame.Vector2(-CAMERA.offset.x, -CAMERA.offset.y)
-        # _end = pygame.Vector2(-CAMERA.offset.x, -CAMERA.offset.y + PLAYFIELD_HEIGHT)
-        # pygame.draw.line(APP_SCREEN, arcade_color.COOL_BLACK, _start, _end, BORDER_WIDTH)
-        pygame.draw.rect(APP_SCREEN, arcade_color.BLACK, (0, 0, -int(CAMERA.offset.x), SCREEN_HEIGHT), int(-CAMERA.offset.x))
-
-        # draw a line from 0,0 to screen width, 0 using pygame
-        # TOP BOUNDARY
-        # _start = pygame.Vector2(-CAMERA.offset.x, -CAMERA.offset.y)
-        # _end = pygame.Vector2(-CAMERA.offset.x + PLAYFIELD_WIDTH, -CAMERA.offset.y)
-        # pygame.draw.line(APP_SCREEN, arcade_color.COOL_BLACK, _start, _end, BORDER_WIDTH)
-        pygame.draw.rect(APP_SCREEN, arcade_color.BLACK, (-CAMERA.offset.x, 0, CAMERA.offset.x + SCREEN_WIDTH, -int(CAMERA.offset.y)), int(-CAMERA.offset.y))
-
-        # draw a line from screen width, 0 to screen width, screen height using pygame
-        # RIGHT BOUNDARY
-        # _start = pygame.Vector2(-CAMERA.offset.x + PLAYFIELD_WIDTH, -CAMERA.offset.y)
-        # _end = pygame.Vector2(-CAMERA.offset.x + PLAYFIELD_WIDTH, -CAMERA.offset.y + PLAYFIELD_HEIGHT)
-        # pygame.draw.line(APP_SCREEN, arcade_color.COOL_BLACK, _start, _end, BORDER_WIDTH)
-        pygame.draw.rect(APP_SCREEN, arcade_color.RED, (-CAMERA.offset.x + config.PLAYFIELD_WIDTH, 0, -CAMERA.offset.x + config.PLAYFIELD_WIDTH, SCREEN_HEIGHT), CAMERA.camera_overpan_x)
-
-        # draw a line from 0, screen height to screen width, screen height using pygame
-        # BOTTOM BOUNDARY
-        # _start = pygame.Vector2(-CAMERA.offset.x, -CAMERA.offset.y + PLAYFIELD_HEIGHT)
-        # _end = pygame.Vector2(-CAMERA.offset.x + PLAYFIELD_WIDTH, -CAMERA.offset.y + PLAYFIELD_HEIGHT)
-        # pygame.draw.line(APP_SCREEN, arcade_color.COOL_BLACK, _start, _end, BORDER_WIDTH)
-        # draw a rect from 0,0 to screen width, screen height using pygame
-        # TODO: these numbers aren't right... but it works for now (it's overdrawing off the screen)
-        pygame.draw.rect(APP_SCREEN, arcade_color.BLACK, (-CAMERA.offset.x, -CAMERA.offset.y + config.PLAYFIELD_HEIGHT, CAMERA.offset.x + SCREEN_WIDTH, SCREEN_HEIGHT), SCREEN_WIDTH)
 
 
 
@@ -312,6 +282,7 @@ class GameplayView(View):
 
 
 
+
     def draw_timer_wheel(self, time_elapsed):
         center_x = SCREEN_WIDTH // 2
         center_y = SCREEN_HEIGHT * 0.5
@@ -329,6 +300,7 @@ class GameplayView(View):
         text_rect = text.get_rect(center=(center_x, center_y - radius))
         APP_SCREEN.blit(text, text_rect)
         pygame.draw.arc(APP_SCREEN, Colors.RED, (center_x - radius, center_y - radius, radius * 2, radius * 2), start_angle, end_angle, 90)
+
 
 
 
@@ -356,11 +328,13 @@ class GameplayView(View):
         self.actor_group.add(agent)
 
 
+
     def spawn_fren(self, hide_out_of_sight: bool = False):
         agent = Agent(AgentType.FRENFISH)
         agent.target = self.player
         agent.hide_out_of_sight = hide_out_of_sight
         self.actor_group.add(agent)
+
 
 
     def spawn_fish(self, hide_out_of_sight: bool = False):
@@ -370,11 +344,13 @@ class GameplayView(View):
         self.actor_group.add(agent)
 
 
+
     def spawn_kraken(self, hide_out_of_sight: bool = False):
         agent = Agent(AgentType.KRAKEN)
         agent.target = self.player
         agent.hide_out_of_sight = hide_out_of_sight
         self.actor_group.add(agent)
+
 
 
 
@@ -436,43 +412,6 @@ class GameplayView(View):
             CAMERA.resize()
 
 
-    # def next_level(self):
-    #     self.level += 1
-    #     logger.debug(f"level: {self.level}")
-
-    #     if self.level > MAX_LEVELS:
-    #         raise NotImplementedError("YOU WIN THE GAME!!!")
-    #     else:
-    #         self.level_setup()
-
-
-    # def level_setup(self):
-    #     # NOTE: level zero is the first level!
-    #     if self.level == 0:
-    #         # TODO: add a marquee to the queue.  This way we can explain gameplay/level to player
-    #         # TODO: trigger a "yay sound effect"
-    #         self.show_vignette = False
-    #         global LIFE_SUCK_RATE
-    #         LIFE_SUCK_RATE = 0
-    #         global AGENT_SPAWN_INTERVAL_SECONDS
-    #         # global MAX_AGENTS
-    #         # MAX_AGENTS = 1200
-    #         self.hide_out_of_sight = False
-    #     elif self.level == 1:
-    #         # self.show_vignette = True
-    #         self.show_vignette = False
-    #         self.actor_group = pygame.sprite.Group() # KILL ALL AGENTS (wipe the board clean)
-
-    #         # TODO: CHANGE THE SIZE OF THE PLAYFIELD... EVERYTHING!!
-
-    #         global AGENT_SPAWN_INTERVAL_SECONDS
-    #         AGENT_SPAWN_INTERVAL_SECONDS = 1.4
-    #         global LIFE_SUCK_RATE
-    #         LIFE_SUCK_RATE = 5
-    #         global MAX_AGENTS
-    #         MAX_AGENTS = 2000
-    #     else:
-    #         raise NotImplementedError(f"Level {self.level} not implemented")
 
 
 
@@ -482,6 +421,27 @@ class GameplayView(View):
         #################  LEVEL ONE  #######################
         #####################################################
         if LEVEL.current_level == 0:
+            if time.time() > LEVEL.last_krill_spawn_time + LEVEL.agent_spawn_interval:
+                LEVEL.last_krill_spawn_time = time.time()
+                self.spawn_krill()
+
+            if time.time() > LEVEL.last_fish_spawn_time + LEVEL.agent_spawn_interval * 3: # 3:1 ratio krill to fish
+                LEVEL.last_fish_spawn_time = time.time()
+                self.spawn_fish()
+        #####################################################
+        #################  LEVEL TWO  #######################
+        #####################################################
+        elif LEVEL.current_level == 1:
+            while len(self.actor_group) < LEVEL.max_agents:
+                random_number = random.uniform(0, 1)
+
+                if random_number < 0.5:
+                    self.spawn_krill( LEVEL.hide_out_of_sight )
+                elif random_number < 15/32 + 16/32:
+
+                    self.spawn_fish( LEVEL.hide_out_of_sight )
+
+        elif LEVEL.current_level == 3:
             while len(self.actor_group) < LEVEL.max_agents:
                 random_number = random.uniform(0, 1)
                 if random_number < 15/32:
@@ -493,17 +453,6 @@ class GameplayView(View):
                 else:
                     # print("This branch runs with a 1/16 probability.")
                     self.spawn_kraken( LEVEL.hide_out_of_sight )
-        #####################################################
-        #################  LEVEL TWO  #######################
-        #####################################################
-        elif LEVEL.current_level == 1:
-            if time.time() > LEVEL.last_krill_spawn_time + LEVEL.agent_spawn_interval:
-                LEVEL.last_krill_spawn_time = time.time()
-                self.spawn_krill()
-
-            if time.time() > LEVEL.last_fish_spawn_time + LEVEL.agent_spawn_interval * 3: # 3:1 ratio krill to fish
-                LEVEL.last_fish_spawn_time = time.time()
-                self.spawn_fish()
 
 
 

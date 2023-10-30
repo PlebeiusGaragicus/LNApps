@@ -6,11 +6,10 @@ from gamelib.globals import *
 
 from fishyfrens import config
 
-# from fishyfrens.view.camera import CAMERA
-# from fishyfrens.globals import CAMERA
 
-MAX_LEVELS = 1
-LEVEL_SCORE_PROGRESSION = [5, 99, 200]
+MAX_LEVELS = 2
+LEVEL_SCORE_PROGRESSION = [1, 99, 200]
+
 
 class Level:
     def __init__(self, starting_level = 0):  # NOTE: level zero is the first level!
@@ -23,6 +22,9 @@ class Level:
 
         self.show_vignette: bool = None
         self.hide_out_of_sight: bool = None
+        self.top_color = None
+        self.bottom_color = None
+        self.depth_gradient = None
 
         self.last_krill_spawn_time = None
         self.last_shark_spawn_time = None
@@ -45,14 +47,19 @@ class Level:
         if self.current_level == 0:
             print("Setting playfield for level zero!")
             # global PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT
-            config.PLAYFIELD_WIDTH = 500
-            config.PLAYFIELD_HEIGHT = 500
+            config.PLAYFIELD_WIDTH = SCREEN_WIDTH
+            config.PLAYFIELD_HEIGHT = SCREEN_HEIGHT
+
+            # self.max_agents = 100
+            self.agent_spawn_interval = 0.1 # seconds
+            self.last_krill_spawn_time = time.time()
+            self.last_fish_spawn_time = time.time()
 
             self.life_suck_rate = 1
-            self.max_agents = 100
-            self.hide_out_of_sight = False
 
             self.show_vignette = False
+            self.hide_out_of_sight = False
+            self.depth_gradient = False
 
         elif self.current_level == 1:
 
@@ -60,15 +67,26 @@ class Level:
             # TODO: trigger a "yay sound effect"
             gameplay_view.actor_group = pygame.sprite.Group() # KILL ALL AGENTS (wipe the board clean)
 
-            # config.PLAYFIELD_WIDTH = 1440
-            # config.PLAYFIELD_HEIGHT = 900
-            config.PLAYFIELD_WIDTH = 500
-            config.PLAYFIELD_HEIGHT = 2000
+            config.PLAYFIELD_WIDTH = SCREEN_WIDTH // 2
+            config.PLAYFIELD_HEIGHT = SCREEN_HEIGHT * 6
 
-            self.agent_spawn_interval = 1 # seconds
-            self.last_krill_spawn_time = time.time()
-            self.last_fish_spawn_time = time.time()
+            self.max_agents = 900
+
+            self.show_vignette = False
+            self.hide_out_of_sight = True
+            self.depth_gradient = True
+
+        elif self.current_level == 2:
+            gameplay_view.actor_group = pygame.sprite.Group() # KILL ALL AGENTS (wipe the board clean)
+
+            config.PLAYFIELD_WIDTH = SCREEN_WIDTH * 4
+            config.PLAYFIELD_HEIGHT = SCREEN_HEIGHT * 4
+
+            self.max_agents = 1200
+
             self.show_vignette = True
+            self.hide_out_of_sight = True
+            self.depth_gradient = True
         else:
             raise NotImplementedError(f"Level {self.level} not implemented")
 
