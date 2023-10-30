@@ -27,4 +27,5 @@ def lerp_color(a, b, t):
     - tuple: Interpolated color
     """
     # NOTE: this is a bit of a hack, but it works
+    t = max(0, min(1, t))  # Clamp t to the [0, 1] range
     return tuple([lerp(a[i], b[i], t) for i in range(len(a))])
