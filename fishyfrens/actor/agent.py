@@ -23,17 +23,14 @@ SAFE_BUFFER = 100
 # how far off screen to draw agents - arbitrary number that needs a better solution overall
 VIEW_OPTO_PIXEL_DISTANCE = -150 
 
-
+# TODO: turn these into proper classes.  Inherit from the Agent class and override methods.  Create a collide_with_player() function as well.
 class AgentType(enum.Enum):
-    Dot = enum.auto()
-    Shrimp = enum.auto()
-    Crab = enum.auto()
-    Octopus = enum.auto()
-    Fish = enum.auto()
-    Dolphin = enum.auto()
-    Shark = enum.auto()
-    Whale = enum.auto()
-    Humpback = enum.auto()
+    KRILL = enum.auto()
+    FISH = enum.auto() # basically your food
+    FRENFISH = enum.auto() # just the generic boring fish pngs
+
+    ENEMY = enum.auto()
+    KRAKEN = enum.auto()
 
 
 
@@ -43,11 +40,23 @@ class BoundaryBehaviour(enum.Enum):
 
 
 
+# def load_agent_images():
+#     for i in range(1, 4):
+#         agent_images[AgentType.KRILL, i] = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', f'krill{i}.png')).convert_alpha()
+#     for i in range(1, 17):
+#         agent_images[AgentType.FISH, i] = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', f'fish{i}.png')).convert_alpha()
+#     for i in range(1, 5):
+#         agent_images[AgentType.FRENFISH, i] = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', f'frenfish{i}.png')).convert_alpha()
+
+#     agent_images[AgentType.KRAKEN] = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'kraken.png')).convert_alpha()
+
+
 def load_agent_images():
-    agent_images[AgentType.Dot] = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'dotfish.png')).convert_alpha()
-    for i in range(1, 4):
-        agent_images[AgentType.Shrimp, i] = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', f'shrimp{i}.png')).convert_alpha()
-    agent_images[AgentType.Crab] = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'kraken.png')).convert_alpha()
+    agent_images[AgentType.KRILL] = {i: pygame.image.load( os.path.join(MY_DIR, 'resources', 'img', f'krill{i}.png') ).convert_alpha() for i in range(4)}
+    agent_images[AgentType.FISH] = {i: pygame.image.load( os.path.join(MY_DIR, 'resources', 'img', f'fish{i}.png') ).convert_alpha() for i in range(17)}
+    agent_images[AgentType.FRENFISH] = {i: pygame.image.load( os.path.join(MY_DIR, 'resources', 'img', f'fren{i}.png') ).convert_alpha() for i in range(5)}
+    agent_images[AgentType.KRAKEN] = {i: pygame.image.load( os.path.join(MY_DIR, 'resources', 'img', f'kraken{i}.png') ).convert_alpha() for i in range(1)}
+
 
 agent_images = {}
 load_agent_images()
@@ -72,26 +81,24 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
         )
 
         self.type = type
-        if type == AgentType.Dot:
-            # self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'dotfish.png')).convert_alpha()
-            self.image = agent_images[AgentType.Dot]
-            self.image_orientation: pygame.Vector2 = pygame.Vector2(0, 1) # facing down
+        if type == AgentType.KRILL:
+            self.subtype = random.randint(0, len(agent_images[AgentType.KRILL]) - 1)
+            self.image = agent_images[AgentType.KRILL][self.subtype] #.copy() #TODO?
+            self.image_orientation: pygame.Vector2 = pygame.Vector2(-1, 0) # facing left
             SteeringBehaviour.__init__(self,
                                        mass=1,
                                        position=position,
                                        max_speed=2.1,
-                                       max_force=0.6,
+                                       max_force=0.8,
                                        velocity=velocity,
                                        decay_rate=6,
-                                       max_sight=400,
+                                       max_sight=250,
                                        behavior_type=BehaviorType.FLEE)
             self.wall_behavior: BoundaryBehaviour = BoundaryBehaviour.Wrap
 
-        elif type == AgentType.Shrimp:
-            r = random.randint(1, 3)
-            # self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', f'shrimp{r}.png')).convert_alpha()
-            r = random.randint(1, 3)
-            self.image = agent_images[AgentType.Shrimp, r]
+        elif type == AgentType.FISH:
+            self.subtype = random.randint(0, len(agent_images[AgentType.FISH]) - 1)
+            self.image = agent_images[AgentType.FISH][self.subtype]
             self.image_orientation: pygame.Vector2 = pygame.Vector2(-1, 0) # facing left
             SteeringBehaviour.__init__(self,
                                        mass=1,
@@ -103,11 +110,27 @@ class Agent(pygame.sprite.Sprite, SteeringBehaviour):
                                        max_sight=400,
                                        behavior_type=BehaviorType.FLEE)
             self.wall_behavior: BoundaryBehaviour = BoundaryBehaviour.Wrap
-            
+        
 
-        elif type == AgentType.Crab:
-            # self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'kraken.png')).convert_alpha()
-            self.image = agent_images[AgentType.Crab]
+        elif type == AgentType.FRENFISH:
+            self.subtype = random.randint(0, len(agent_images[AgentType.FRENFISH]) - 1)
+            self.image = agent_images[AgentType.FRENFISH][self.subtype]
+            self.image_orientation: pygame.Vector2 = pygame.Vector2(1, 0) # facing right
+
+            SteeringBehaviour.__init__(self,
+                                       mass=1,
+                                       position=position,
+                                       max_speed=4,
+                                       max_force=0.8,
+                                       velocity=velocity,
+                                       decay_rate=0.05,
+                                       max_sight=100,
+                                       behavior_type=BehaviorType.NONE)
+            self.wall_behavior: BoundaryBehaviour = BoundaryBehaviour.Wrap
+
+        elif type == AgentType.KRAKEN:
+            self.subtype = random.randint(0, len(agent_images[AgentType.KRAKEN]) - 1)
+            self.image = agent_images[AgentType.KRAKEN][self.subtype]
             # scale_by = 1
             # self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * scale_by), int(self.image.get_height() * scale_by)))
             # self.image_orientation = pygame.Vector2(-1, 1)

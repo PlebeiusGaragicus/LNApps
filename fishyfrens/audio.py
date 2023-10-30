@@ -5,7 +5,6 @@ logger = logging.getLogger()
 
 import pygame
 
-# from gamelib.globals import MY_DIR
 from fishyfrens.app import MY_DIR
 
 

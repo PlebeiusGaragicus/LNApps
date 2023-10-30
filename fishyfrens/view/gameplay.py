@@ -68,8 +68,19 @@ class GameplayView(View):
             KEY_SPACE: CooldownKey(pygame.K_SPACE, 3),
         }
 
-        self.score = 0
         self.level = App.get_instance().manifest_key_value('starting_level', 1)
+
+        self.score = 0
+        # TODO: good enough for now, but please refactor this
+        self.stomach = {
+            AgentType.KRILL: 0,
+            AgentType.FISH: 0,
+            AgentType.FRENFISH: 0,
+            AgentType.KRAKEN: 0,
+        }
+        # for agent_type in self.stomach.keys():
+        #     for i in range(3):
+        #         self.stomach[agent_type].append(0)
 
 
     def setup(self):
@@ -90,7 +101,7 @@ class GameplayView(View):
 
         if App.get_instance().manifest.get("fastswimmer", False):
             self.player.top_speed = 60
-            self.player.acceleration = 5
+            self.player.acceleration = pygame.Vector2(5, 5)
 
         CAMERA.target = self.player
         self.actor_group = pygame.sprite.Group()
@@ -337,33 +348,34 @@ class GameplayView(View):
 
 
 
-     # FLEE PLAYER
-    def spawn_flee_agent(self, hide_out_of_sight: bool = False):
-        agent = Agent(AgentType.Shrimp)
+
+    def spawn_krill(self, hide_out_of_sight: bool = False):
+        agent = Agent(AgentType.KRILL)
         agent.target = self.player
         agent.hide_out_of_sight = hide_out_of_sight
         self.actor_group.add(agent)
 
-     # SEEK PLAYER
-    def spawn_seek_agent(self, hide_out_of_sight: bool = False):
-        agent = Agent(AgentType.Crab)
+
+    def spawn_fren(self, hide_out_of_sight: bool = False):
+        agent = Agent(AgentType.FRENFISH)
         agent.target = self.player
         agent.hide_out_of_sight = hide_out_of_sight
         self.actor_group.add(agent)
 
-     # FLEE PLAYER
-    def spawn_dot_agent(self, hide_out_of_sight: bool = False):
-        agent = Agent(AgentType.Dot)
+
+    def spawn_fish(self, hide_out_of_sight: bool = False):
+        agent = Agent(AgentType.FISH)
         agent.target = self.player
         agent.hide_out_of_sight = hide_out_of_sight
         self.actor_group.add(agent)
 
-    # PURSUE PLAYER
-    def spawn_octopus_agent(self, hide_out_of_sight: bool = False):
-        agent = Agent(AgentType.Octopus)
+
+    def spawn_kraken(self, hide_out_of_sight: bool = False):
+        agent = Agent(AgentType.KRAKEN)
         agent.target = self.player
         agent.hide_out_of_sight = hide_out_of_sight
         self.actor_group.add(agent)
+
 
 
     def handle_collisions(self):
@@ -394,16 +406,24 @@ class GameplayView(View):
         collisions = pygame.sprite.spritecollide(self.player, agents_within_proximity, False, pygame.sprite.collide_mask)
         for agent in collisions:
             # agent.dead = True
-            if agent.type == AgentType.Dot:
+            if agent.type == AgentType.KRILL:
                 AUDIO.dink()
                 self.score += 1
+                # self.stomach[AgentType.KRILL][agent.subtype] += 1
+                self.stomach[AgentType.KRILL] += 1
                 self.player.adjust_life(13) # faster
-            elif agent.type == AgentType.Shrimp:
+            elif agent.type == AgentType.FISH:
                 AUDIO.dink()
                 self.score += 2
+                # self.stomach[AgentType.FISH][agent.subtype] += 1
+                self.stomach[AgentType.FISH] += 1
                 self.player.adjust_life(5) # more plentiful
-            elif agent.type == AgentType.Crab:
+            elif agent.type == AgentType.FRENFISH:
+                continue
+            elif agent.type == AgentType.KRAKEN:
                 self.score -= 3
+                # self.stomach[AgentType.KRAKEN][agent.subtype] += 1
+                self.stomach[AgentType.KRAKEN] += 1
                 AUDIO.oww( self.player.name )
                 self.player.adjust_life(-15)
 
@@ -419,14 +439,18 @@ class GameplayView(View):
         hide_out_of_sight = False
 
         while len(self.actor_group) < MAX_AGENTS:
-            if random.randint(1, 100) <= 5: # 5% chance:
-                self.spawn_seek_agent( hide_out_of_sight )
+
+            random_number = random.uniform(0, 1)
+            if random_number < 15/32:
+                # print("This branch runs with a 7/16 probability.")
+                self.spawn_krill( hide_out_of_sight )
+            elif random_number < 15/32 + 16/32:
+                # print("This branch runs with a 8/16 (or 1/2) probability.")
+                self.spawn_fish( hide_out_of_sight )
             else:
-                if random.randint(1, 100) <= 50: # 50% chance:
-                    self.spawn_flee_agent( hide_out_of_sight )
-                else:
-                    self.spawn_dot_agent( hide_out_of_sight )
-        
+                # print("This branch runs with a 1/16 probability.")
+                self.spawn_kraken( hide_out_of_sight )
+
 
         self.handle_collisions()
 

@@ -26,7 +26,7 @@ class Player(pygame.sprite.Sprite):
         self.velocity_dampening = 0.98
         self.acceleration = pygame.Vector2(0, 0)
 
-        self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'player.png')).convert_alpha()
+        self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'playermyca.png')).convert_alpha()
         scale_by = 3
         self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * scale_by), int(self.image.get_height() * scale_by)))
         self.image = pygame.transform.flip(self.image, True, False)
