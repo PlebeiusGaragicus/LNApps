@@ -147,9 +147,12 @@ class GameplayView(View):
         APP_SCREEN.fill( (23, 21, 25) )
 
         if LEVEL.depth_gradient:
-            bg_color = lerp_color((40, 70, 140), (0, 30, 50), self.player.position.y / config.PLAYFIELD_HEIGHT)
+            # NOTE: the minimun BG color has be be above zero because lerp_color is hacky and will overshoot
+            # bg_color = lerp_color((40, 70, 140), (5, 30, 50), self.player.position.y / config.PLAYFIELD_HEIGHT)
+            bg_color = lerp_color((40, 70, 140), (5, 30, 50), CAMERA.player_ratio_y)
         else:
             bg_color = (3, 32, 50)
+
         pygame.draw.rect(APP_SCREEN, bg_color, (-CAMERA.offset.x, -CAMERA.offset.y, config.PLAYFIELD_WIDTH, config.PLAYFIELD_HEIGHT))
 
         # show pressed keys
@@ -257,12 +260,14 @@ class GameplayView(View):
                 debug.DRAW_STATS = not debug.DRAW_STATS
             elif event.key == pygame.K_k:
                 self.player.life = 0 # TODO: call player.kill?
-            elif event.key == pygame.K_RIGHTBRACKET:
-                config.PLAYFIELD_WIDTH += 100
-                config.PLAYFIELD_HEIGHT += 100
-            elif event.key == pygame.K_LEFTBRACKET:
-                config.PLAYFIELD_WIDTH -= 100
-                config.PLAYFIELD_HEIGHT -= 100
+            # elif event.key == pygame.K_RIGHTBRACKET:
+            #     config.PLAYFIELD_WIDTH += 100
+            #     config.PLAYFIELD_HEIGHT += 100
+            # elif event.key == pygame.K_LEFTBRACKET:
+            #     config.PLAYFIELD_WIDTH -= 100
+            #     config.PLAYFIELD_HEIGHT -= 100
+            elif event.key == pygame.K_EQUALS:
+                LEVEL.next_level(self)
 
             if event.key == pygame.K_l: # kill all agents
                 # self.player.fire()
@@ -409,7 +414,7 @@ class GameplayView(View):
 
         if self.score > LEVEL_SCORE_PROGRESSION[LEVEL.current_level]: # TODO: hard, coded... let's make a score list/dict or something
             LEVEL.next_level(self)
-            CAMERA.resize()
+            CAMERA.resize() # TODO: not sure if I need this...
 
 
 
