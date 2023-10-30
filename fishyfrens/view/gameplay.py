@@ -10,7 +10,7 @@ import pygame
 from gamelib.globals import APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
 # from gamelib import globals
 from gamelib.colors import Colors, arcade_color
-from gamelib.utils import lerp
+from gamelib.utils import lerp_color
 
 
 # from gamelib.cooldown_keys import CooldownKey, KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT
@@ -139,10 +139,10 @@ class GameplayView(View):
 
 
     def draw(self):
-        # APP_SCREEN.fill( (3, 32, 50) ) # (3, 192, 60) DARK_PASTEL_GREEN
+        # APP_SCREEN.fill( (3, 32, 50) )
 
-        # bg_color = lerp()
-        APP_SCREEN.fill( (3, 32, 50) ) # (3, 192, 60) DARK_PASTEL_GREEN
+        bg_color = lerp_color((40, 70, 140), (0, 30, 50), self.player.position.y / PLAYFIELD_HEIGHT)
+        APP_SCREEN.fill( bg_color ) # (3, 192, 60) DARK_PASTEL_GREEN
 
         self.draw_playfield_boarder()
 
@@ -444,6 +444,8 @@ class GameplayView(View):
         # NOTE: level zero is the first level!
         if self.level == 0:
             self.show_vignette = False
+            # TODO: add a marquee to the queue.  This way we can explain gameplay/level to player
+            # TODO: trigger a "yay sound effect"
             # global LIFE_SUCK_RATE
             # LIFE_SUCK_RATE = 1
             # global AGENT_SPAWN_INTERVAL_SECONDS
