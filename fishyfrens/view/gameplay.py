@@ -28,18 +28,11 @@ from fishyfrens.parallax import ParallaxBackground
 from fishyfrens.audio import AUDIO
 
 
+MAX_LEVELS = 1
+LEVEL_SCORE_PROGRESSION = [2, 99, 200]
 
-# def create_vignette_surface(radius, color=(0, 0, 0)):
-#     surface = pygame.Surface((radius*2, radius*2), pygame.SRCALPHA)
-#     for y in range(radius*2):
-#         for x in range(radius*2):
-#             dx = x - radius
-#             dy = y - radius
-#             distance = min(radius, (dx*dx + dy*dy)**0.5)
-#             alpha = (1 - distance / radius) * 255
-#             surface.set_at((x, y), (*color, int(alpha)))
-#     return surface
 
+# TODO: move this to a better place
 def create_vignette_surface(radius, color=(0, 0, 0)):
     surface = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'vignette', 'vdonewhitehuge.png')).convert_alpha()
     # surface = pygame.transform.scale(surface, (radius, radius))
@@ -68,7 +61,8 @@ class GameplayView(View):
             KEY_SPACE: CooldownKey(pygame.K_SPACE, 3),
         }
 
-        self.level = App.get_instance().manifest_key_value('starting_level', 1)
+        self.show_vignette = None # must be set in level_setup()
+        self.level = App.get_instance().manifest_key_value('starting_level', 0)
 
         self.score = 0
         # TODO: good enough for now, but please refactor this
@@ -78,9 +72,6 @@ class GameplayView(View):
             AgentType.FRENFISH: 0,
             AgentType.KRAKEN: 0,
         }
-        # for agent_type in self.stomach.keys():
-        #     for i in range(3):
-        #         self.stomach[agent_type].append(0)
 
 
     def setup(self):
@@ -97,11 +88,14 @@ class GameplayView(View):
         self.escape_pressed_time = None
         self.alive = True
 
-        self.player: Player = Player()
+        # self.player: Player = Player(name="myca")
+        self.player: Player = Player(name="charlie")
 
-        if App.get_instance().manifest.get("fastswimmer", False):
+        if App.get_instance().manifest.get("fastswimmer", False) == True:
+            logger.debug("CHEAT ENABLED - FAST SWIMMING MODE!")
             self.player.top_speed = 60
-            self.player.acceleration = pygame.Vector2(5, 5)
+            global PLAYER_ACCELERATION
+            PLAYER_ACCELERATION = 1.5
 
         CAMERA.target = self.player
         self.actor_group = pygame.sprite.Group()
@@ -110,6 +104,8 @@ class GameplayView(View):
 
         for key in self.cooldown_keys.values():
             key.reset()
+
+        self.level_setup() # this is called in gameplay.setup() (AKA right here) and gameplay.next_level()
 
 
     def update(self):
@@ -126,20 +122,17 @@ class GameplayView(View):
         self.handle_cooldown_keys()
         self.player.update()
 
-        if self.level == 1:
-            self.level1()
-        elif self.level == 2:
-            self.level2()
+        # if self.level == 1:
+        #     self.level1()
+        # elif self.level == 2:
+        #     self.level2()
+        self.level_agent_handler()
 
         # self.handle_collisions() # level functions must handle their own agent generation and collisions
 
         CAMERA.update() # this should be done last
         self.parallax_background.update()
 
-        # #rotate vignette background 1 degree per frame
-        # NOTE: performance is ASS
-        # global vignette_surface
-        # vignette_surface = pygame.transform.rotate(vignette_surface, 1)
 
 
 
@@ -168,7 +161,8 @@ class GameplayView(View):
         self.player.draw()
 
         # VIGNETTE
-        APP_SCREEN.blit(vignette_surface, (self.player.position.x - CAMERA.offset.x - vignette_surface.get_width() // 2, self.player.position.y - CAMERA.offset.y - vignette_surface.get_height() //2), special_flags=pygame.BLEND_RGBA_MULT)
+        if self.show_vignette:
+            APP_SCREEN.blit(vignette_surface, (self.player.position.x - CAMERA.offset.x - vignette_surface.get_width() // 2, self.player.position.y - CAMERA.offset.y - vignette_surface.get_height() //2), special_flags=pygame.BLEND_RGBA_MULT)
 
         self.player.draw_life_bar()
         text(APP_SCREEN, f"Score: {self.score}", (SCREEN_WIDTH // 2, 20), font_size=40, color=arcade_color.YELLOW_ORANGE, center=True)
@@ -189,6 +183,7 @@ class GameplayView(View):
             speed = round(self.player.velocity.magnitude(), 1)
             text(APP_SCREEN, f"speed: {speed}", (SCREEN_WIDTH // 2, 60), font_size=20, color=arcade_color.YELLOW_ORANGE, center=True)
             text(APP_SCREEN, fps, (SCREEN_WIDTH // 2, 80), font_size=20, color=arcade_color.YELLOW_ORANGE, center=True)
+            text(APP_SCREEN, f"Level: {self.level}", (SCREEN_WIDTH // 2, 100), font_size=20, color=arcade_color.PIGGY_PINK, center=True)
 
         if self.paused:
             fade_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
@@ -431,44 +426,79 @@ class GameplayView(View):
             self.actor_group.remove(agent)
             del agent
 
-
-    def level1(self):
-        # LIFE_SUCK_RATE = 1
-        # AGENT_SPAWN_INTERVAL_SECONDS = 0.05
-        # MAX_AGENTS = 1200
-        hide_out_of_sight = False
-
-        while len(self.actor_group) < MAX_AGENTS:
-
-            random_number = random.uniform(0, 1)
-            if random_number < 15/32:
-                # print("This branch runs with a 7/16 probability.")
-                self.spawn_krill( hide_out_of_sight )
-            elif random_number < 15/32 + 16/32:
-                # print("This branch runs with a 8/16 (or 1/2) probability.")
-                self.spawn_fish( hide_out_of_sight )
-            else:
-                # print("This branch runs with a 1/16 probability.")
-                self.spawn_kraken( hide_out_of_sight )
+        if self.score > LEVEL_SCORE_PROGRESSION[self.level]: # TODO: hard, coded... let's make a score list/dict or something
+            self.next_level()
 
 
-        self.handle_collisions()
+    def next_level(self):
+        self.level += 1
+        logger.debug(f"level: {self.level}")
+
+        if self.level > MAX_LEVELS:
+            raise NotImplementedError("YOU WIN THE GAME!!!")
+        else:
+            self.level_setup()
 
 
-    def level2(self):
-        global AGENT_SPAWN_INTERVAL_SECONDS
-        AGENT_SPAWN_INTERVAL_SECONDS = 1.4
-        global LIFE_SUCK_RATE
-        LIFE_SUCK_RATE = 5
-        global MAX_AGENTS
-        MAX_AGENTS = 2000
+    def level_setup(self):
+        # NOTE: level zero is the first level!
+        if self.level == 0:
+            self.show_vignette = False
+            # global LIFE_SUCK_RATE
+            # LIFE_SUCK_RATE = 1
+            # global AGENT_SPAWN_INTERVAL_SECONDS
+            # AGENT_SPAWN_INTERVAL_SECONDS = 0.05
+            # global MAX_AGENTS
+            # MAX_AGENTS = 1200
+            self.hide_out_of_sight = False
+        elif self.level == 1:
+            # self.show_vignette = True
+            self.show_vignette = False
+            self.actor_group = pygame.sprite.Group() # KILL ALL AGENTS (wipe the board clean)
 
-        if time.time() > self.last_flee_agent_spawn_time + AGENT_SPAWN_INTERVAL_SECONDS:
-            self.last_flee_agent_spawn_time = time.time()
-            self.spawn_flee_agent()
+            # TODO: CHANGE THE SIZE OF THE PLAYFIELD... EVERYTHING!!
 
-        if time.time() > self.last_seek_agent_spawn_time + AGENT_SPAWN_INTERVAL_SECONDS * 10:
-            self.last_seek_agent_spawn_time = time.time()
-            self.spawn_seek_agent()
+            global AGENT_SPAWN_INTERVAL_SECONDS
+            AGENT_SPAWN_INTERVAL_SECONDS = 1.4
+            global LIFE_SUCK_RATE
+            LIFE_SUCK_RATE = 5
+            global MAX_AGENTS
+            MAX_AGENTS = 2000
+        else:
+            raise NotImplementedError(f"Level {self.level} not implemented")
 
+
+
+#####################################################
+    def level_agent_handler(self):
+        #####################################################
+        #################  LEVEL ONE  #######################
+        #####################################################
+        if self.level == 0:
+            while len(self.actor_group) < MAX_AGENTS:
+                random_number = random.uniform(0, 1)
+                if random_number < 15/32:
+                    # print("This branch runs with a 7/16 probability.")
+                    self.spawn_krill( self.hide_out_of_sight )
+                elif random_number < 15/32 + 16/32:
+                    # print("This branch runs with a 8/16 (or 1/2) probability.")
+                    self.spawn_fish( self.hide_out_of_sight )
+                else:
+                    # print("This branch runs with a 1/16 probability.")
+                    self.spawn_kraken( self.hide_out_of_sight )
+        #####################################################
+        #################  LEVEL TWO  #######################
+        #####################################################
+        elif self.level == 1:
+            if time.time() > self.last_flee_agent_spawn_time + AGENT_SPAWN_INTERVAL_SECONDS:
+                self.last_flee_agent_spawn_time = time.time()
+                self.spawn_krill()
+
+            if time.time() > self.last_seek_agent_spawn_time + AGENT_SPAWN_INTERVAL_SECONDS * 3: # 3:1 ratio krill to fish
+                self.last_seek_agent_spawn_time = time.time()
+                self.spawn_fish()
+
+
+
+        # TODO - all levels have the same collision handler FOR NOW
         self.handle_collisions()

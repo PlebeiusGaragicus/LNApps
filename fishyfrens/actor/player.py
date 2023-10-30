@@ -21,14 +21,15 @@ class Player(pygame.sprite.Sprite):
     def __init__(self, name = "myca"):
         super().__init__()
         self.name = name
+        self.top_speed = 6
         self.position = pygame.Vector2(random.randint(100, PLAYFIELD_WIDTH - 100), random.randint(100, PLAYFIELD_HEIGHT - 100))  # Use Vector2 for position
         self.velocity = pygame.Vector2(random.randint(-2, 2), random.randint(-2, 2))  # Use Vector2 for velocity
         self.velocity_dampening = 0.98
         self.acceleration = pygame.Vector2(0, 0)
 
-        self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'playermyca.png')).convert_alpha()
-        scale_by = 3
-        self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * scale_by), int(self.image.get_height() * scale_by)))
+        self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', f'player{self.name}.png')).convert_alpha()
+        self.scale_by = 3
+        self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * self.scale_by), int(self.image.get_height() * self.scale_by)))
         self.image = pygame.transform.flip(self.image, True, False)
         self.flipped = False
         self.size = pygame.Vector2(self.image.get_size())
@@ -77,28 +78,15 @@ class Player(pygame.sprite.Sprite):
         self.velocity += self.acceleration
         self.acceleration *= 0.4
 
-
-        # if self.velocity.magnitude() > PLAYER_TOP_SPEED + max(0, self.boost_time - time.time() + 3):
-        #     print("limiting speed")
-        #     # DAMPEN VELOCITY (but allow for a minimum 'drift' velocity)
-        #     if self.velocity.magnitude() > 0.5:
-        #         self.velocity *= self.velocity_dampening
-
-        #     self.velocity = self.velocity.normalize() * PLAYER_TOP_SPEED
-        # else:
-        #     print(self.velocity.magnitude())
-
         # DAMPEN VELOCITY (but allow for a minimum 'drift' velocity)
         if self.velocity.magnitude() > 0.5:
             self.velocity *= self.velocity_dampening
 
         time_remaining = self.boost_time - time.time()
-        # speed_boost = 0 if time_remaining < 0 else 4 # SPEED_BOOST_AMOUNT
-        # speed_boost = 0 if time_remaining < 0 else time_remaining # SPEED_BOOST_AMOUNT
         speed_boost = max(0, time_remaining * 9) # SPEED_BOOST_AMOUNT
 
-        if self.velocity.magnitude() > PLAYER_TOP_SPEED + speed_boost:
-            self.velocity = self.velocity.normalize() * (PLAYER_TOP_SPEED + speed_boost)
+        if self.velocity.magnitude() > self.top_speed + speed_boost:
+            self.velocity = self.velocity.normalize() * (self.top_speed + speed_boost)
 
         # if velocity is negative, flip the image
         if self.velocity.x < 0.0 and self.flipped == False:
@@ -117,32 +105,24 @@ class Player(pygame.sprite.Sprite):
         # Update mask for pixel-perfect collision
         # Note: Only necessary if the sprite's appearance or orientation changes
         angle = self.velocity.angle_to(self.image_orientation)
-        rotated_image = pygame.transform.rotate(self.image, angle)
-        self.mask = pygame.mask.from_surface(rotated_image)
+        self.rotated_image = pygame.transform.rotate(self.image, angle)
+        self.mask = pygame.mask.from_surface(self.rotated_image)
 
 
     def draw(self):
-        angle = self.velocity.angle_to(self.image_orientation)
-        rotated_image = pygame.transform.rotate(self.image, angle)
+        # angle = self.velocity.angle_to(self.image_orientation)
+        # rotated_image = pygame.transform.rotate(self.image, angle)
 
         # Convert world coordinates to screen coordinates
         screen_pos = self.position - pygame.Vector2(CAMERA.offset)
-
-        # Draw the sprite at its screen position
-        # APP_SCREEN.blit(rotated_image, screen_pos)
 
         if debug.DRAW_MASKS:
             # _img = pygame.transform.rotate(self.mask.to_surface(), self.velocity.angle_to(self.image_orientation))
             _img = self.mask.to_surface()
             _img.set_colorkey((0, 0, 0))
             APP_SCREEN.blit(_img, screen_pos)
-            # mask_surface = pygame.Surface(rotated_image.get_size(), pygame.SRCALPHA)
-            # mask_surface.fill((255, 255, 255, 100))  # Red with alpha transparency
-            # mask_surface.blit(rotated_image, (0, 0), None, pygame.BLEND_RGBA_MULT)
-            # APP_SCREEN.blit(mask_surface, screen_pos)
         else:
-            APP_SCREEN.blit(rotated_image, screen_pos)
-
+            APP_SCREEN.blit(self.rotated_image, screen_pos)
 
         if debug.DRAW_VECTORS:
             # self.draw_vectors()
@@ -153,37 +133,6 @@ class Player(pygame.sprite.Sprite):
             screen_rect = self.rect.copy()
             screen_rect.topleft = screen_pos
             pygame.draw.rect(APP_SCREEN, Colors.WHITE, screen_rect, 2)
-        
-        # self.draw_life_bar() # now done in gameplay draw() method
-
-
-    # def draw(self):
-    #     # rotate the image based on the velocity
-    #     if debug.DRAW_MASKS:
-    #         # draw the collision mask and verify proper rotation, collisions.. etc
-    #         # TODO - this is not working properly
-    #         _img = pygame.transform.rotate(self.mask.to_surface(), self.velocity.angle_to(self.image_orientation))
-    #         _img.set_colorkey((0, 0, 0))
-    #     else:
-    #         _img = pygame.transform.rotate(self.image, self.velocity.angle_to(self.image_orientation))
-
-    #     # if velocity is negative, flip the image
-    #     # if self.velocity.x < 0:
-    #     #     _img = pygame.transform.flip(_img, False, True)
-
-    #     # calculate camera offset and true screen pixel position
-    #     _pos = pygame.Vector2(self.position.x - CAMERA.offset.x, self.position.y - CAMERA.offset.y)
-    #     APP_SCREEN.blit(_img, _pos)
-
-    #     if debug.DRAW_VECTORS:
-    #         self.draw_velocity_overlay()
-
-    #     # draw the collision detection bounding box
-    #     if debug.DRAW_RECTS:
-    #         self.rect = self.image.get_rect(topleft=_pos)
-    #         pygame.draw.rect(APP_SCREEN, Colors.WHITE, self.rect, 2)
-
-    #     self.draw_life_bar()
 
 
     def boost(self):
@@ -209,8 +158,8 @@ class Player(pygame.sprite.Sprite):
     def draw_life_bar(self):
         life_bar_width = 200
         life_bar_height = 20
-        # life_bar_x = SCREEN_WIDTH - life_bar_width - 10
-        life_bar_x = 20
+        life_bar_x = SCREEN_WIDTH - life_bar_width - 20
+        # life_bar_x = 20
         life_bar_y = 20
 
         life_bar_rect = pygame.Rect(life_bar_x, life_bar_y, life_bar_width, life_bar_height)
@@ -248,8 +197,8 @@ class Player(pygame.sprite.Sprite):
         #     self.position.y = PLAYFIELD_HEIGHT - BORDER_WIDTH - self.size.y
 
         # self.position.y = max(BORDER_WIDTH - self.size.y // 2, self.position.y)
-        self.position.y = max(0, self.position.y)
         # self.position.y = min(PLAYFIELD_HEIGHT - BORDER_WIDTH - self.size.y, self.position.y)
+        self.position.y = max(0, self.position.y)
         self.position.y = min(PLAYFIELD_HEIGHT - self.size.y * 2, self.position.y)
 
     def adjust_life(self, amount: int):
@@ -258,32 +207,3 @@ class Player(pygame.sprite.Sprite):
 
         self.life += amount
         self.life = max(0, min(100, self.life))
-
-
-
-
-
-
-    # def update(self):
-    #     if time.time() > self.last_life_loss + 1:
-    #         self.life -= LIFE_SUCK_RATE
-    #         self.last_life_loss = time.time()
-
-    #     ### MOVEMENT AND CONFINEMENT
-
-    #     self.velocity += self.acceleration
-    #     self.acceleration *= 0.4
-
-    #     # DAMPEN VELOCITY (but allow for a minimum 'drift' velocity)
-    #     if self.velocity.magnitude() > 0.5:
-    #         self.velocity *= self.velocity_dampening
-
-    #     if self.velocity.magnitude() > PLAYER_TOP_SPEED:
-    #         self.velocity = self.velocity.normalize() * PLAYER_TOP_SPEED
-
-    #     self.position += self.velocity
-
-    #     self.bounce_off_walls(attenuate=True)
-
-    #     # this is necessary for the camera to follow the player (as well as the collision detection mask, I think)
-    #     self.rect.topleft = self.position

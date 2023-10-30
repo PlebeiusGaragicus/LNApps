@@ -7,38 +7,13 @@ import numpy as np
 from gamelib.colors import Colors
 from gamelib.globals import APP_SCREEN
 
+from fishyfrens.actor import BehaviorType, NULL_VECTOR
 from fishyfrens.view.camera import CAMERA
 
-NULL_VECTOR = pygame.Vector2(0, 0)
-
-class BehaviorType:
-    NONE = 0x00000000
-    SEEK = 0x00000002
-    FLEE = 0x00000004
-    ARRIVE = 0x00000008
-    WANDER = 0x00000010
-    COHESION = 0x00000020
-    SEPARATION = 0x00000040
-    ALIGNMENT = 0x00000080
-    OBSTACLE_AVOIDANCE = 0x00000100
-    WALL_AVOIDANCE = 0x00000200
-    FOLLOW_PATH = 0x00000400
-    PURSUIT = 0x00000800
-    EVADE = 0x00001000
-    INTERPOSE = 0x00002000
-    HIDE = 0x00004000
-    FLOCK = 0x00008000
-    OFFSET_PURSUIT = 0x00010000
 
 
-class SteeringBehaviour:
-    # mass: int = None
-    # position: pygame.Vector2 = None
-    # max_speed: int = None
-    # max_force: int = None
-    # velocity: pygame.Vector2 = None
-    # decay_rate: float = None
 
+class Boid:
     def __init__(self,
                  mass: int,
                  position: pygame.Vector2,
@@ -118,6 +93,7 @@ class SteeringBehaviour:
         steering_force *= decay_factor
 
         return steering_force
+
 
     def flee(self) -> pygame.Vector2:
         if self.target is None:
