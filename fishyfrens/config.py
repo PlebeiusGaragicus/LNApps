@@ -1,4 +1,8 @@
+import os
 import platform
+
+MY_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 ## CONTROL
 AFK_TIMEOUT = 300 # 5 minutes (set to zero to diable)
@@ -16,8 +20,8 @@ if platform.system() == "Darwin":
 FPS = 80
 # BORDER_WIDTH = 6
 
-PLAYFIELD_WIDTH = None
-PLAYFIELD_HEIGHT = None
+# PLAYFIELD_WIDTH = None
+# PLAYFIELD_HEIGHT = None
 ### 1/2x
 # PLAYFIELD_WIDTH = 720
 # PLAYFIELD_HEIGHT = 449
@@ -43,23 +47,3 @@ PLAYFIELD_HEIGHT = None
 
 ## GAMEPLAY - all variables are set for level 1
 ## NOTE: These are not set in gameplay.level_setup()
-
-
-## DEBUG / TESTING
-# These need to be in their own file so that I can reference them via debug.DRAW_MASKS so that I can change them at runtime
-# DRAW_MASKS = False
-# DRAW_VECTORS = True
-# DRAW_RECTS = True
-
-
-
-
-
-
-
-#NOTE: This would create a circular import
-# from .view.camera import Camera
-# CAMERA: Camera = None
-
-# from .actor.player import Player
-# PLAYER: Player = None

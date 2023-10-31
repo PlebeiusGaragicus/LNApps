@@ -5,7 +5,7 @@ logger = logging.getLogger()
 
 import pygame
 
-from fishyfrens.app import MY_DIR
+from fishyfrens.config import *
 
 
 class SoundMaster:
@@ -18,10 +18,6 @@ class SoundMaster:
                 file_name = os.path.join(MY_DIR, 'resources', 'sounds', f'{player_name}oww{i}.wav')
                 logger.debug(f"loading sound {file_name}")
                 self.oww_effects[f'{player_name}oww{i}'] = pygame.mixer.Sound( file_name )
-
-        # self.oww_effect1 = pygame.mixer.Sound( os.path.join(MY_DIR, 'resources', 'sounds', 'coww1.wav') )
-        # self.oww_effect2 = pygame.mixer.Sound( os.path.join(MY_DIR, 'resources', 'sounds', 'coww2.wav') )
-        # self.oww_effect3 = pygame.mixer.Sound( os.path.join(MY_DIR, 'resources', 'sounds', 'coww3.wav') )
 
         self.boost_effect = pygame.mixer.Sound( os.path.join(MY_DIR, 'resources', 'sounds', 'boost.wav') )
 
@@ -73,4 +69,11 @@ class SoundMaster:
         self.you_died_effect.play()
 
 
-AUDIO = SoundMaster()
+
+_audio = None
+
+def audio() -> SoundMaster:
+    global _audio
+    if _audio is None:
+        _audio = SoundMaster()
+    return _audio

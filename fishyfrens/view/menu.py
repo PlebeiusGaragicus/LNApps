@@ -13,7 +13,8 @@ from gamelib.menuaction import MenuAction
 
 from fishyfrens.app import App
 from fishyfrens.config import *
-from fishyfrens.audio import AUDIO
+from fishyfrens.actor.player import create_player
+from fishyfrens.audio import audio
 
 
 
@@ -23,10 +24,10 @@ class MainMenuView(View):
         self.last_input = time.time()
 
         self.menu_action = []
-        self.menu_action.append( MenuAction("Play Fishy", self.start_game) )
-        # self.menu_action.append( MenuAction("Start Game", self.start_game) )
+        self.menu_action.append( MenuAction("Play as Myca Fish", self.start_myca) )
+        self.menu_action.append( MenuAction("Play as Charlie Fish", self.start_charlie) )
+        # self.menu_action.append( MenuAction("Play as Presley Fish", self.start_game) )
         # self.menu_action.append( MenuAction("Purchase Power-up", None) )
-        # self.menu_action.append( MenuAction("Options", None) )
         self.menu_action.append( MenuAction("Quit", App.get_instance().stop ) )
         self.menu_selected_item = 0
 
@@ -44,13 +45,21 @@ class MainMenuView(View):
 
 
     def start_game(self):
-        AUDIO.stop_bg()
+        audio().stop_bg()
         App.get_instance().viewmanager.run_view("gameplay")
+    
+    def start_myca(self):
+        create_player(name="myca")
+        self.start_game()
+
+    def start_charlie(self):
+        create_player(name="charlie")
+        self.start_game()
 
 
     def setup(self):
         # NOTE: audio now started in the splash screen - but this is needed for when the results view opens the menu view
-        AUDIO.play_bg(0)
+        audio().play_bg(0)
 
 
     def update(self):

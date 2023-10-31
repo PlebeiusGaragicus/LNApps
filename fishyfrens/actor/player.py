@@ -10,23 +10,22 @@ from gamelib.colors import Colors
 from gamelib.utils import lerp_color
 
 import fishyfrens.debug as debug
-# from fishyfrens.config import *
-from fishyfrens import config
-from fishyfrens.app import App, MY_DIR
+from fishyfrens.config import *
+from fishyfrens.app import App
 
-# from fishyfrens.view.camera import CAMERA
-from fishyfrens.globals import CAMERA, LEVEL
-
-from fishyfrens.audio import AUDIO
+from fishyfrens.view.camera import camera
+from fishyfrens.audio import audio
+from fishyfrens.level import level
 
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, name = "myca"):
+    def __init__(self, name):
         super().__init__()
+
         self.name = name
         self.top_speed = 6
-        self.position = pygame.Vector2(random.randint(100, config.PLAYFIELD_WIDTH - 100), random.randint(100, config.PLAYFIELD_HEIGHT - 100))  # Use Vector2 for position
+        self.position = pygame.Vector2(random.randint(100, camera().playfield_width - 100), random.randint(100, camera().playfield_height - 100))  # Use Vector2 for position
         self.velocity = pygame.Vector2(random.randint(-2, 2), random.randint(-2, 2))  # Use Vector2 for velocity
         self.velocity_dampening = 0.98
         self.acceleration = pygame.Vector2(0, 0)
@@ -54,7 +53,7 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         if time.time() > self.last_life_loss + 1:
             self.last_life_loss = time.time()
-            self.adjust_life(-LEVEL.life_suck_rate)
+            self.adjust_life(-level().life_suck_rate)
 
         ### MOVEMENT AND CONFINEMENT
         # Normalize velocity and acceleration to get direction vectors
@@ -118,7 +117,7 @@ class Player(pygame.sprite.Sprite):
         # rotated_image = pygame.transform.rotate(self.image, angle)
 
         # Convert world coordinates to screen coordinates
-        screen_pos = self.position - pygame.Vector2(CAMERA.offset)
+        screen_pos = self.position - pygame.Vector2(camera().offset)
 
         if debug.DRAW_MASKS:
             # _img = pygame.transform.rotate(self.mask.to_surface(), self.velocity.angle_to(self.image_orientation))
@@ -141,13 +140,13 @@ class Player(pygame.sprite.Sprite):
 
     def boost(self):
         if self.life > 20:
-            AUDIO.boost()
+            audio().boost()
             self.adjust_life(-8)
             self.velocity += self.velocity.normalize() * 3
             self.boost_time = time.time() + 1  # Set the boost time to 3 seconds in the future
             # TODO make a wave effect with particles or something
         else:
-            # AUDIO.too_tired()   # TODO:
+            # audio().too_tired()   # TODO:
             pass
 
 
@@ -155,7 +154,7 @@ class Player(pygame.sprite.Sprite):
 
     def draw_velocity_overlay(self):
         player_center = self.position + self.size // 2
-        player_center -= CAMERA.offset
+        player_center -= camera().offset
         pygame.draw.line(APP_SCREEN, Colors.GREEN, player_center, player_center + self.velocity * 8, 3)
 
 
@@ -189,7 +188,7 @@ class Player(pygame.sprite.Sprite):
         # self.position.x = max(BORDER_WIDTH - self.size.x // 2, self.position.x)
         self.position.x = max(0, self.position.x)
         # self.position.x = min(PLAYFIELD_WIDTH - BORDER_WIDTH - self.size.y, self.position.x)
-        self.position.x = min(config.PLAYFIELD_WIDTH - self.size.x, self.position.x)
+        self.position.x = min(camera().playfield_width - self.size.x, self.position.x)
 
         # if self.position.y < BORDER_WIDTH - self.size.y // 3:
         #     self.velocity.y = abs(self.velocity.y) * PLAYER_WALL_BOUNCE_ATTENUATION if attenuate else abs(self.velocity.y)
@@ -203,7 +202,7 @@ class Player(pygame.sprite.Sprite):
         # self.position.y = max(BORDER_WIDTH - self.size.y // 2, self.position.y)
         # self.position.y = min(PLAYFIELD_HEIGHT - BORDER_WIDTH - self.size.y, self.position.y)
         self.position.y = max(0, self.position.y)
-        self.position.y = min(config.PLAYFIELD_HEIGHT - self.size.y * 2, self.position.y)
+        self.position.y = min(camera().playfield_height - self.size.y * 2, self.position.y)
 
     def adjust_life(self, amount: int):
         if App.get_instance().manifest.get("god_mode", False):
@@ -211,3 +210,24 @@ class Player(pygame.sprite.Sprite):
 
         self.life += amount
         self.life = max(0, min(100, self.life))
+
+
+
+
+
+
+
+_p = None
+
+def create_player(name):
+    global _p
+    if _p is not None:
+        raise Exception("Player instance already exists")
+    _p = Player(name)
+    return _p
+
+def player():
+    # global _p # not needed as we are only accessing, not modifying it
+    if _p is None:
+        raise Exception("Player has not been created yet")
+    return _p

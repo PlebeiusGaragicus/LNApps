@@ -8,8 +8,7 @@ logger = logging.getLogger()
 # from icecream import ic
 
 import pygame
-# for type hinting
-from pyglet.media import Player
+
 
 # from gamelib.globals import APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
 from gamelib import globals
@@ -17,10 +16,9 @@ from gamelib.logger import setup_logging
 from gamelib.singleton import Singleton
 from gamelib.viewstate import ViewManager
 
-# from fishyfrens.config import *
-from fishyfrens import config
+from fishyfrens.config import *
+# from fishyfrens import config
 
-MY_DIR = os.path.dirname(os.path.abspath(__file__))
 # APP_SCREEN: pygame.Surface = None
 # SCREEN_HEIGHT = None
 # SCREEN_WIDTH = None
@@ -126,7 +124,8 @@ class App(Singleton):
         logger.debug("App.start()")
 
         if self.manifest_key_value('skip_to_gameplay', False) == True:
-            self.viewmanager.run_view("gameplay")
+            # self.viewmanager.run_view("gameplay") # TODO clean up this manifest variable action
+            self.viewmanager.run_view("main_menu")
         else:
             self.viewmanager.run_view("splash_screen")
 
@@ -148,7 +147,7 @@ class App(Singleton):
 
                 # pygame.display.update() # TODO is this needed?
                 pygame.display.flip()
-                self.clock.tick(config.FPS)
+                self.clock.tick(FPS)
 
             except KeyboardInterrupt:
                 logger.info("KeyboardInterrupt")

@@ -4,9 +4,7 @@ import random
 
 from gamelib.globals import APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
 
-from fishyfrens.config import PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT
-# from fishyfrens.view.camera import CAMERA
-from fishyfrens.globals import CAMERA, LEVEL
+from fishyfrens.view.camera import camera
 
 
 class Particle:
@@ -31,8 +29,8 @@ PARLLAX_PARTICLES = 500 # TODO: This should be a function of the playfield size 
 
 class ParallaxBackground:
     def __init__(self):
-        self.width = int(PLAYFIELD_WIDTH * PSIZEFACTOR)
-        self.height = int(PLAYFIELD_HEIGHT * PSIZEFACTOR)
+        self.width = int(camera().playfield_width * PSIZEFACTOR)
+        self.height = int(camera().playfield_height * PSIZEFACTOR)
         self.surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         # self.layers = [[Particle(random.randint(0, self.width), random.randint(0, self.height)) for _ in range(100)] for _ in range(3)]
         self.particles = [Particle(random.randint(0, self.width), random.randint(0, self.height)) for _ in range(500)]  # 100 particles
@@ -54,14 +52,13 @@ class ParallaxBackground:
         #         particle.update()
 
         parallax_range_x = self.width - SCREEN_WIDTH
-        parallax_offset_x = parallax_range_x * (1 - CAMERA.player_ratio_x) - parallax_range_x
+        parallax_offset_x = parallax_range_x * (1 - camera().target_ratio_x) - parallax_range_x
 
         parallax_range_y = self.height - SCREEN_HEIGHT
-        parallax_offset_y = parallax_range_y * (1 - CAMERA.player_ratio_y) - parallax_range_y
+        parallax_offset_y = parallax_range_y * (1 - camera().target_ratio_y) - parallax_range_y
 
         self.offset = pygame.Vector2(parallax_offset_x, parallax_offset_y)
 
-        # print("coff:", int(CAMERA.offset.x), "poff:", int(self.offset.x), "size:", SCREEN_WIDTH, PLAYFIELD_WIDTH, self.width, "player ratio", CAMERA.player_ratio_x)
 
     def draw(self):
         # self.surface.fill((0, 0, 0, 0))  # Clear surface

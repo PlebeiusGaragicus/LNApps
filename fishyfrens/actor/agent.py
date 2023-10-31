@@ -9,12 +9,10 @@ from gamelib.globals import APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
 from gamelib.colors import Colors
 
 import fishyfrens.debug as debug
-# from fishyfrens.config import *
-from fishyfrens import config
-from fishyfrens.app import MY_DIR
+from fishyfrens.config import *
 
-# from fishyfrens.view.camera import CAMERA
-from fishyfrens.globals import CAMERA
+from fishyfrens.view.camera import camera
+
 
 AGENT_WALL_BOUNCE_ATTENUATION = 2.1
 
@@ -28,7 +26,7 @@ def load_AGENT_IMAGES():
     AGENT_IMAGES[AgentType.KRILL] = {i: pygame.image.load( os.path.join(MY_DIR, 'resources', 'img', f'krill{i}.png') ).convert_alpha() for i in range(4)}
     AGENT_IMAGES[AgentType.FISH] = {i: pygame.image.load( os.path.join(MY_DIR, 'resources', 'img', f'fish{i}.png') ).convert_alpha() for i in range(17)}
     AGENT_IMAGES[AgentType.FRENFISH] = {i: pygame.image.load( os.path.join(MY_DIR, 'resources', 'img', f'fren{i}.png') ).convert_alpha() for i in range(5)}
-    AGENT_IMAGES[AgentType.KRAKEN] = {i: pygame.image.load( os.path.join(MY_DIR, 'resources', 'img', f'kraken{i}.png') ).convert_alpha() for i in range(1)}
+    AGENT_IMAGES[AgentType.KRAKEN] = {i: pygame.image.load( os.path.join(MY_DIR, 'resources', 'img', f'enemy{i}.png') ).convert_alpha() for i in range(3)}
 
 AGENT_IMAGES = {}
 load_AGENT_IMAGES()
@@ -41,10 +39,11 @@ class Agent(pygame.sprite.Sprite, Boid):
         pygame.sprite.Sprite.__init__(self)
 
         position = pygame.Vector2(
-            random.randint(SAFE_BUFFER, config.PLAYFIELD_WIDTH - SAFE_BUFFER),
-            random.randint(SAFE_BUFFER, config.PLAYFIELD_HEIGHT - SAFE_BUFFER)
+            random.randint(SAFE_BUFFER, camera().playfield_width - SAFE_BUFFER),
+            random.randint(SAFE_BUFFER, camera().playfield_height - SAFE_BUFFER)
         )
-        
+        # position = safeXY()
+
         velocity = pygame.Vector2(
             random.randint(-1, 1),
             random.randint(-1, 1)
@@ -111,7 +110,7 @@ class Agent(pygame.sprite.Sprite, Boid):
             self.image = AGENT_IMAGES[AgentType.KRAKEN][self.subtype]
             # scale_by = 1
             # self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * scale_by), int(self.image.get_height() * scale_by)))
-            self.image_orientation = pygame.Vector2(0, 1) # facing down
+            self.image_orientation = pygame.Vector2(1, 0) # facing right
 
             # override the velocity to make the kraken slow
             velocity = pygame.Vector2( random.randint(-4, 4), random.randint(-4, 4) ) / 10
@@ -153,10 +152,10 @@ class Agent(pygame.sprite.Sprite, Boid):
         # if agent position is visible on screen given camera offset
         # NOTE: increases framerate on Dell Wyse from ~10 to ~
         # TODO: do the same with draw...
-        if self.position.x - CAMERA.offset.x < VIEW_OPTO_PIXEL_DISTANCE \
-            or self.position.x - CAMERA.offset.x > SCREEN_WIDTH - VIEW_OPTO_PIXEL_DISTANCE \
-                or self.position.y - CAMERA.offset.y < VIEW_OPTO_PIXEL_DISTANCE \
-                    or self.position.y - CAMERA.offset.y > SCREEN_HEIGHT - VIEW_OPTO_PIXEL_DISTANCE:
+        if self.position.x - camera().offset.x < VIEW_OPTO_PIXEL_DISTANCE \
+            or self.position.x - camera().offset.x > SCREEN_WIDTH - VIEW_OPTO_PIXEL_DISTANCE \
+                or self.position.y - camera().offset.y < VIEW_OPTO_PIXEL_DISTANCE \
+                    or self.position.y - camera().offset.y > SCREEN_HEIGHT - VIEW_OPTO_PIXEL_DISTANCE:
             self.is_onscreen = False
             return
         else:
@@ -193,7 +192,7 @@ class Agent(pygame.sprite.Sprite, Boid):
             if self.position.distance_to(self.target.position) > self.max_sight:
                 return
 
-        screen_pos = self.position - pygame.Vector2(CAMERA.offset) # Convert world coordinates to screen coordinates
+        screen_pos = self.position - pygame.Vector2(camera().offset) # Convert world coordinates to screen coordinates
 
         if debug.DRAW_MASKS:
             _img = self.mask.to_surface()
@@ -218,26 +217,26 @@ class Agent(pygame.sprite.Sprite, Boid):
             self.position.x = 0
             self.velocity.x *= -AGENT_WALL_BOUNCE_ATTENUATION if attenuate else -1
 
-        if self.position.x > config.PLAYFIELD_WIDTH - self.size.x:
-            self.position.x = config.PLAYFIELD_WIDTH - self.size.x
+        if self.position.x > camera().playfield_width - self.size.x:
+            self.position.x = camera().playfield_width - self.size.x
             self.velocity.x *= -AGENT_WALL_BOUNCE_ATTENUATION if attenuate else -1
 
         if self.position.y < 0:
             self.position.y = 0
             self.velocity.y *= -AGENT_WALL_BOUNCE_ATTENUATION if attenuate else -1
 
-        if self.position.y > config.PLAYFIELD_HEIGHT - self.size.y:
-            self.position.y = config.PLAYFIELD_HEIGHT - self.size.y
+        if self.position.y > camera().playfield_height - self.size.y:
+            self.position.y = camera().playfield_height - self.size.y
             self.velocity.y *= -AGENT_WALL_BOUNCE_ATTENUATION if attenuate else -1
 
 
 
     def wrap_screen(self):
         if self.position.x < 0:
-            self.position.x = config.PLAYFIELD_WIDTH - self.size.x
-        if self.position.x > config.PLAYFIELD_WIDTH - self.size.x:
+            self.position.x = camera().playfield_width - self.size.x
+        if self.position.x > camera().playfield_width - self.size.x:
             self.position.x = 0
         if self.position.y < 0:
-            self.position.y = config.PLAYFIELD_HEIGHT - self.size.x
-        if self.position.y > config.PLAYFIELD_HEIGHT - self.size.x:
+            self.position.y = camera().playfield_height - self.size.x
+        if self.position.y > camera().playfield_height - self.size.x:
             self.position.y = 0

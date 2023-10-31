@@ -13,7 +13,7 @@ from gamelib.text import text
 from gamelib.texteffect import FlashText
 
 from fishyfrens.app import App
-from fishyfrens.audio import AUDIO
+from fishyfrens.audio import audio
 
 AUTO_ADVANCE_SEC = 20
 MANDITORY_WAIT_SEC = 2
@@ -29,7 +29,7 @@ class SplashScreenView( View ):
 
 
     def setup(self):
-        AUDIO.play_bg()
+        audio().play_bg()
 
 
     def update(self):

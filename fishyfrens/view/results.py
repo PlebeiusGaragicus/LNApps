@@ -12,7 +12,7 @@ from gamelib.text import text
 
 from fishyfrens.app import App
 from fishyfrens.config import AFK_TIMEOUT
-from fishyfrens.audio import AUDIO
+from fishyfrens.audio import audio
 
 
 
@@ -31,17 +31,17 @@ class ResultsView( View ):
 
 
     def revive(self):
-        AUDIO.you_died_effect.stop()
+        audio().you_died_effect.stop()
         App.get_instance().viewmanager.run_view("gameplay")
 
     def main_menu(self):
-        AUDIO.you_died_effect.stop()
+        audio().you_died_effect.stop()
         App.get_instance().viewmanager.run_view("main_menu")
 
 
     def setup(self):
-        # AUDIO.you_died()
-        AUDIO.you_died_effect.play()
+        # audio().you_died()
+        audio().you_died_effect.play()
 
 
     def update(self):

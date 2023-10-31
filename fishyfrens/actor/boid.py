@@ -9,8 +9,7 @@ from gamelib.globals import APP_SCREEN
 
 from fishyfrens.actor import BehaviorType, NULL_VECTOR
 
-# from fishyfrens.view.camera import CAMERA
-from fishyfrens.globals import CAMERA, LEVEL
+from fishyfrens.view.camera import camera
 
 
 
@@ -54,7 +53,7 @@ class Boid:
 
     def draw_vector(self, vec, color: pygame.Color = Colors.RED, magnitude = 20):
         player_center = self.position + self.size // 2
-        player_center += -CAMERA.offset
+        player_center += -camera().offset
         pygame.draw.line(APP_SCREEN, color, player_center, player_center + vec * magnitude, 3)
 
 
