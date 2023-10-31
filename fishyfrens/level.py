@@ -4,7 +4,6 @@ import logging
 logger = logging.getLogger()
 
 from gamelib.globals import *
-# from fishyfrens import config
 
 from fishyfrens.view.camera import camera
 
@@ -18,7 +17,7 @@ class Storyline(enum.Enum):
 class LevelVariables:
 
     MAX_LEVELS = 2
-    LEVEL_SCORE_PROGRESSION = [1, 99, 200]
+    LEVEL_SCORE_PROGRESSION = [50, 100, 150]
 
     def __init__(self, storyline: Storyline, starting_level):  # NOTE: level zero is the first level!
         self.storyline = storyline
@@ -106,15 +105,6 @@ class LevelVariables:
         else:
             raise NotImplementedError(f"Level {self.level} not implemented")
 
-
-
-# _l = None
-
-# def level() -> LevelVariables:
-#     global _l
-#     if _l is None:
-#         _l = LevelVariables()
-#     return _l
 
 
 

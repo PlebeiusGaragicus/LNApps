@@ -24,9 +24,7 @@ from fishyfrens.app import App
 
 from fishyfrens.level import level, create_levels, Storyline
 from fishyfrens.audio import audio
-from fishyfrens.view.camera import camera
-
-# from fishyfrens.parallax import ParallaxBackground
+from fishyfrens.view.camera import camera, ParallaxBackground
 
 from fishyfrens.actor.agent import Agent, AgentType
 from fishyfrens.actor.player import player, create_player
@@ -104,8 +102,6 @@ class GameplayView(View):
         camera().target = player()
         self.actor_group = pygame.sprite.Group()
 
-        # TODO: Performance is not acceptable on arcade
-        # self.parallax_background = ParallaxBackground()
 
         for key in self.cooldown_keys.values():
             key.reset()
@@ -138,9 +134,8 @@ class GameplayView(View):
         # level functions must handle their own agent generation and collisions
         # self.handle_collisions()
 
-        camera().update() # this should be done last
+        camera().update() # this should be done last ( now updates parallax background too)
 
-        # self.parallax_background.update()
 
 
 
@@ -181,7 +176,7 @@ class GameplayView(View):
         # self.player.draw_life_bar()
         player().draw_life_bar()
 
-        # self.parallax_background.draw()
+        camera().draw_effects()
 
         self.draw_effects()
 

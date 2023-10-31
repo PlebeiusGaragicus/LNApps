@@ -1,3 +1,3 @@
 #!/bin/bash
 
-./profilefishy.py > out.txt
+./cprofilefishy.py > out.txt

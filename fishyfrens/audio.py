@@ -6,9 +6,15 @@ logger = logging.getLogger()
 import pygame
 
 from fishyfrens.config import *
+from fishyfrens.app import App
+
 
 
 class SoundMaster:
+    """
+        https://pixabay.com/music/search/game%20intro/?pagi=3
+    """
+
     def __init__(self):
         self.dink_effect = pygame.mixer.Sound( os.path.join(MY_DIR, 'resources', 'sounds', 'dink.wav') )
 
@@ -24,8 +30,12 @@ class SoundMaster:
         self.you_died_effect = pygame.mixer.Sound( os.path.join(MY_DIR, 'resources', 'sounds', 'mycagameover.wav') )
 
         self.current_track = None
+        self.quiet = App.get_instance().manifest.get("quiet", False)
 
     def play_bg(self, track: int = 0):
+        if self.quiet:
+            return
+
         if track == self.current_track:
             return
         else:
@@ -48,14 +58,23 @@ class SoundMaster:
 
 
     def dink(self):
+        if self.quiet:
+            return
+
         self.dink_effect.set_volume(0.4)
         self.dink_effect.play()
     
     def boost(self):
+        if self.quiet:
+            return
+
         self.boost_effect.set_volume(0.3) # TODO: set once in __init__???
         self.boost_effect.play()
     
     def oww(self, player_name: str):
+        if self.quiet:
+            return
+
         r = random.randint(0, 2)
 
         effect = f"{player_name}oww{r}"
@@ -65,6 +84,9 @@ class SoundMaster:
 
 
     def you_died(self):
+        if self.quiet:
+            return
+
         self.you_died_effect.set_volume(0.7)
         self.you_died_effect.play()
 
