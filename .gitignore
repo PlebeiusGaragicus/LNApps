@@ -6,3 +6,5 @@ venv/
 
 *.zip
 *.smc
+
+*.txt
