@@ -1,4 +1,5 @@
 import os
+import math
 import random
 import time
 import logging
@@ -26,10 +27,10 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
 
         self.name = name
-        self.top_speed = 6
+        self.top_speed = 5
         self.position = pygame.Vector2(random.randint(100, camera().playfield_width - 100), random.randint(100, camera().playfield_height - 100))  # Use Vector2 for position
         self.velocity = pygame.Vector2(random.randint(-2, 2), random.randint(-2, 2))  # Use Vector2 for velocity
-        self.velocity_dampening = 0.98
+        self.velocity_dampening = 0.97
         self.acceleration = pygame.Vector2(0, 0)
 
         self.image = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', f'player{self.name}.png')).convert_alpha()
@@ -58,7 +59,7 @@ class Player(pygame.sprite.Sprite):
             self.adjust_life(-level().life_suck_rate)
 
         ### MOVEMENT AND CONFINEMENT
-        # Normalize velocity and acceleration to get direction vectors
+        # # Normalize velocity and acceleration to get direction vectors
         if self.velocity.magnitude() != 0:
             velocity_direction = self.velocity.normalize()
         else:
@@ -144,7 +145,7 @@ class Player(pygame.sprite.Sprite):
         if self.life > 20:
             audio().boost()
             self.adjust_life(-8)
-            self.velocity += self.velocity.normalize() * 3
+            self.velocity += self.velocity.normalize() * 4
             self.boost_time = time.time() + 1  # Set the boost time to 3 seconds in the future
             # TODO make a wave effect with particles or something
         else:
@@ -158,6 +159,7 @@ class Player(pygame.sprite.Sprite):
         player_center = self.position + self.size // 2
         player_center -= camera().offset
         pygame.draw.line(APP_SCREEN, Colors.GREEN, player_center, player_center + self.velocity * 8, 3)
+        # pygame.draw.line(APP_SCREEN, Colors.YELLOW, player_center, player_center + self.dot_product * 8, 3)
 
 
     def draw_life_bar(self):

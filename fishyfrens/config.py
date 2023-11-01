@@ -5,7 +5,7 @@ MY_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 ## CONTROL
-AFK_TIMEOUT = 300 # 5 minutes (set to zero to diable)
+AFK_TIMEOUT = 300  # 5 minutes (set to zero to diable)
 HOLD_TO_QUIT_SECONDS = 1.5
 COOLDOWN_DIRECTIONAL_SECONDS = 0.05
 # COOLDOWN_DIRECTIONAL_SECONDS = 0.1

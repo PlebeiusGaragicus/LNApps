@@ -25,6 +25,7 @@ class Boid:
                  max_sight: int,
                  behavior_type: BehaviorType):
 
+        self.target = None
         self.mass: int = mass
         self.position: pygame.Vector2 = position
         self.max_speed: int = max_speed
@@ -45,9 +46,13 @@ class Boid:
 
 ###########################################
     def draw_vectors(self):
-        # self.draw_vector(self.desired_velocity, color=Colors.GREEN)
-        # self.draw_vector(self.steering_force, color=Colors.BLUE)
+        self.draw_vector(self.desired_velocity, color=Colors.GREEN)
+        self.draw_vector(self.steering_force, color=Colors.BLUE)
         self.draw_vector(self.velocity, color=Colors.RED)
+
+        # draw circle with radius max_sight // 3
+        pygame.draw.circle(APP_SCREEN, Colors.RED, self.position, self.max_sight, 1)
+        pygame.draw.circle(APP_SCREEN, Colors.GREEN, self.position, self.max_sight // 2, 1)
 
 
 
@@ -61,32 +66,33 @@ class Boid:
 
 
 ###########################################
-    def update_steering(self):
+    def update_steering(self, all_actors: pygame.sprite.Group):
         self.velocity *= self.vel_coef
 
-        if self.behavior_type is not None:
-            if self.behavior_type & BehaviorType.SEEK:
-                self.steering_force = self.seek()
-                self.velocity += self.steering_force
+        steering = pygame.Vector2(0, 0)
+        if self.behavior_type & BehaviorType.SEEK:
+            steering += self.seek()
 
-            if self.behavior_type & BehaviorType.FLEE:
-                self.steering_force = self.flee()
-                self.velocity += self.steering_force
-            
-            # if self.behavior_type & BehaviorType.ARRIVE:
-            #     self.steering_force = self.arrive()
-            #     self.velocity += self.steering_force
+        if self.behavior_type & BehaviorType.FLEE:
+            flee_force = self.flee()
+            steering += flee_force + flee_force + flee_force + flee_force
 
-            if self.behavior_type & BehaviorType.FLOCK:
-                self.steering_force = self.flock()
-                self.velocity += self.steering_force
+        if self.behavior_type & BehaviorType.FLOCK:
+            steering += self.flock( all_actors )
+
+        self.steering_force = steering
+
+        # normalize steering force
+        if self.steering_force.magnitude() > self.max_force:
+            self.steering_force = self.steering_force.normalize() * self.max_force
+
+        # steering_force /= self.mass  # Assuming mass is not zero
+        self.velocity += self.steering_force
 
         # cap velocity
         if self.velocity.magnitude() > self.max_speed:
             self.velocity = self.velocity.normalize() * self.max_speed
 
-        # steering_force /= self.mass  # Assuming mass is not zero
-        self.velocity += self.steering_force
         self.position += self.velocity
 
 
@@ -130,6 +136,40 @@ class Boid:
         return steering_force
 
 
-###########################################
-    def flock(self) -> pygame.Vector2:
+    def align(self, neighbors: pygame.sprite.Group) -> pygame.Vector2:
+        print("aligning with neighbors", len(neighbors))
+        average = pygame.Vector2(0, 0)
+        print("neighbors: ", len(neighbors))
+        for a in neighbors:
+            average += a.velocity
+
+        average /= max(len(neighbors), 1)
+        return average.normalize() * self.max_force if average != NULL_VECTOR else NULL_VECTOR
+
+
+    def separate(self, neighbors: pygame.sprite.Group) -> pygame.Vector2:
         return NULL_VECTOR
+
+    def cohere(self, neighbors: pygame.sprite.Group) -> pygame.Vector2:
+        return NULL_VECTOR
+
+###########################################
+    def flock(self, all_actors: pygame.sprite.Group) -> pygame.Vector2:
+        # get actors within sight
+
+        neighbors: pygame.sprite.Group = pygame.sprite.Group()
+        for a in all_actors:
+            if a != self:
+                distance = self.position.distance_to(a.position)
+                # if self.position.distance_to(a.position) < self.max_sight // 3:
+                # print(distance)
+                if distance < self.max_sight // 2:
+                    neighbors.add(a)
+
+
+        if len(neighbors) == 0:
+            print("no neighbors")
+            return NULL_VECTOR
+        else:
+            return self.align( neighbors ) + self.separate( neighbors ) + self.cohere( neighbors )
+        # return self.align( all_actors ) + self.separate( all_actors ) + self.cohere( all_actors )

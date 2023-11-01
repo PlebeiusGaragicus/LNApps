@@ -1,13 +1,16 @@
 import os
 import time
 import random
+
 # import math
 import logging
+
 logger = logging.getLogger()
 
 import pygame
 
 from gamelib.globals import APP_SCREEN, SCREEN_WIDTH, SCREEN_HEIGHT
+
 # from gamelib import globals
 from gamelib.colors import Colors, arcade_color
 from gamelib.utils import lerp_color
@@ -31,18 +34,27 @@ from fishyfrens.view.camera import camera, ParallaxBackground
 
 from fishyfrens.actor import BehaviorType, NULL_VECTOR
 from fishyfrens.actor.agent import Agent, AgentType
+
 # from fishyfrens.actor.player import player, create_player
+
+
+PLAYER_ACCELERATION = 1
 
 
 # TODO: move this to a better place
 def create_vignette_surface():
     # file_name = 'vdonewhitehuge.png'
-    file_name = 'v1cleanhuge.png'
+    file_name = "v1cleanhuge.png"
     scale = 2
-    surface = pygame.image.load(os.path.join(MY_DIR, 'resources', 'img', 'vignette', file_name)).convert_alpha()
-    surface = pygame.transform.scale(surface, (surface.get_width() * scale, surface.get_height() * scale))
+    surface = pygame.image.load(
+        os.path.join(MY_DIR, "resources", "img", "vignette", file_name)
+    ).convert_alpha()
+    surface = pygame.transform.scale(
+        surface, (surface.get_width() * scale, surface.get_height() * scale)
+    )
     surface.set_colorkey((255, 255, 255))
     return surface
+
 
 vignette_surface = create_vignette_surface()
 
@@ -78,13 +90,16 @@ class GameplayView(View):
         self.clicked = False
         self.clicked_pos = None
 
-
     def setup(self):
         # NOTE: This is called when the view is switched to, so it's a good place to reset things
         # we can also use this to setup the view the first time it's run instead of in __init__()
 
-        starting_level = App.get_instance().manifest_key_value('starting_level', 0) # TODO: find a way to set
-        create_levels(self, storyline=Storyline.FREN_RESCUE, starting_level=starting_level)
+        starting_level = App.get_instance().manifest_key_value(
+            "starting_level", 0
+        )  # TODO: find a way to set
+        create_levels(
+            self, storyline=Storyline.FREN_RESCUE, starting_level=starting_level
+        )
         # TODO : this is a mess, fix the level class
         # level().set_level(self, set_level=starting_level)
         level().set_level(set_level=starting_level)
@@ -110,12 +125,10 @@ class GameplayView(View):
         camera().target = player()
         self.actor_group = pygame.sprite.Group()
 
-
         for key in self.cooldown_keys.values():
             key.reset()
 
         # self.level_setup()
-
 
     def update(self):
         if player().life <= 0 or self.alive is False:
@@ -124,8 +137,7 @@ class GameplayView(View):
         if self.paused:
             return
 
-
-        self.actor_group.update()
+        self.actor_group.update(self.actor_group)
 
         self.handle_cooldown_keys()
         player().update()
@@ -137,16 +149,10 @@ class GameplayView(View):
         # level functions must handle their own agent generation and collisions
         # self.handle_collisions()
 
-        camera().update() # this should be done last ( now updates parallax background too)
-
-
-
-
-
-
+        camera().update()  # this should be done last ( now updates parallax background too)
 
     def draw(self):
-        APP_SCREEN.fill( (23, 21, 25) )
+        APP_SCREEN.fill((23, 21, 25))
 
         if level().depth_gradient:
             # NOTE: the minimun BG color has be be above zero because lerp_color is hacky and will overshoot
@@ -155,7 +161,16 @@ class GameplayView(View):
         else:
             bg_color = (3, 32, 50)
 
-        pygame.draw.rect(APP_SCREEN, bg_color, (-camera().offset.x, -camera().offset.y, camera().playfield_width, camera().playfield_height))
+        pygame.draw.rect(
+            APP_SCREEN,
+            bg_color,
+            (
+                -camera().offset.x,
+                -camera().offset.y,
+                camera().playfield_width,
+                camera().playfield_height,
+            ),
+        )
 
         # show pressed keys
         pressed_keys = []
@@ -171,10 +186,19 @@ class GameplayView(View):
 
         # VIGNETTE
         if level().show_vignette:
-            APP_SCREEN.blit(vignette_surface,
-                            # (self.player.position.x - camera().offset.x - vignette_surface.get_width() // 2, self.player.position.y - camera().offset.y - vignette_surface.get_height() //2),
-                            (player().position.x - camera().offset.x - vignette_surface.get_width() // 2, player().position.y - camera().offset.y - vignette_surface.get_height() //2),
-                            special_flags=pygame.BLEND_RGBA_MULT)
+            APP_SCREEN.blit(
+                vignette_surface,
+                # (self.player.position.x - camera().offset.x - vignette_surface.get_width() // 2, self.player.position.y - camera().offset.y - vignette_surface.get_height() //2),
+                (
+                    player().position.x
+                    - camera().offset.x
+                    - vignette_surface.get_width() // 2,
+                    player().position.y
+                    - camera().offset.y
+                    - vignette_surface.get_height() // 2,
+                ),
+                special_flags=pygame.BLEND_RGBA_MULT,
+            )
 
         # self.player.draw_life_bar()
         player().draw_life_bar()
@@ -184,10 +208,19 @@ class GameplayView(View):
         self.draw_effects()
 
         if self.paused:
-            fade_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+            fade_surface = pygame.Surface(
+                (SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA
+            )
             fade_surface.fill((0, 0, 0, 128))
             APP_SCREEN.blit(fade_surface, (0, 0))
-            text(APP_SCREEN, "PAUSED", (SCREEN_WIDTH / 2, SCREEN_HEIGHT * 0.3), color=arcade_color.YELLOW_ROSE, font_size=100, center=True)
+            text(
+                APP_SCREEN,
+                "PAUSED",
+                (SCREEN_WIDTH / 2, SCREEN_HEIGHT * 0.3),
+                color=arcade_color.YELLOW_ROSE,
+                font_size=100,
+                center=True,
+            )
 
         if self.escape_pressed_time is not None:
             time_elapsed = time.time() - self.escape_pressed_time
@@ -197,8 +230,6 @@ class GameplayView(View):
                 App.get_instance().viewmanager.run_view("main_menu")
             else:
                 self.draw_timer_wheel(time_elapsed)
-
-
 
     def draw_effects(self):
         # """ TODO: look into a damage vignette effect here: https://stackoverflow.com/questions/56333344/how-to-create-a-taken-damage-red-vignette-effect-in-pygame
@@ -213,18 +244,59 @@ class GameplayView(View):
         # TODO - toggle extra stats on screen
         # arcade.draw_text(f"Pressed keys: {pressed_keys}", SCREEN_WIDTH - 10, SCREEN_HEIGHT * 0.9, arcade.color.WHITE, font_size=20, anchor_x="right")
 
-        text(APP_SCREEN, f"Score: {self.score}", (SCREEN_WIDTH // 2, 20), font_size=40, color=arcade_color.YELLOW_ORANGE, center=True)
+        text(
+            APP_SCREEN,
+            f"Score: {self.score}",
+            (SCREEN_WIDTH // 2, 20),
+            font_size=40,
+            color=arcade_color.YELLOW_ORANGE,
+            center=True,
+        )
 
         if debug.DRAW_STATS:
             fps = f"FPS: {App.get_instance().clock.get_fps():.0f}"
             speed = round(player().velocity.magnitude(), 1)
-            text(APP_SCREEN, f"speed: {speed}", (SCREEN_WIDTH // 2, 60), font_size=20, color=arcade_color.YELLOW_ORANGE, center=True)
-            text(APP_SCREEN, fps, (SCREEN_WIDTH // 2, 80), font_size=20, color=arcade_color.YELLOW_ORANGE, center=True)
-            text(APP_SCREEN, f"Level: {level().current_level}", (SCREEN_WIDTH // 2, 100), font_size=20, color=arcade_color.PIGGY_PINK, center=True)
+            text(
+                APP_SCREEN,
+                f"speed: {speed}",
+                (SCREEN_WIDTH // 2, 60),
+                font_size=20,
+                color=arcade_color.YELLOW_ORANGE,
+                center=True,
+            )
+            text(
+                APP_SCREEN,
+                fps,
+                (SCREEN_WIDTH // 2, 80),
+                font_size=20,
+                color=arcade_color.YELLOW_ORANGE,
+                center=True,
+            )
+            text(
+                APP_SCREEN,
+                f"Level: {level().current_level}",
+                (SCREEN_WIDTH // 2, 100),
+                font_size=20,
+                color=arcade_color.PIGGY_PINK,
+                center=True,
+            )
             # TODO show as a percentage instead!!!  (Or a level progress bar!!!!!)
-            text(APP_SCREEN, f"score needed: {-(self.score - level().winning_score - level().starting_score)}", (SCREEN_WIDTH // 2, 120), font_size=20, color=arcade_color.PIGGY_PINK, center=True)
-
-
+            text(
+                APP_SCREEN,
+                f"score needed: {-(self.score - level().winning_score - level().starting_score)}",
+                (SCREEN_WIDTH // 2, 120),
+                font_size=20,
+                color=arcade_color.PIGGY_PINK,
+                center=True,
+            )
+            text(
+                APP_SCREEN,
+                f"total agents: {len(self.actor_group)}",
+                (SCREEN_WIDTH // 2, 140),
+                font_size=20,
+                color=arcade_color.PIGGY_PINK,
+                center=True,
+            )
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
@@ -253,7 +325,7 @@ class GameplayView(View):
             elif event.key == pygame.K_b:
                 debug.DRAW_STATS = not debug.DRAW_STATS
             elif event.key == pygame.K_k:
-                self.player.life = 0 # TODO: call player.kill?
+                player().life = 0  # TODO: call player.kill?
             elif event.key == pygame.K_EQUALS:
                 level().set_level(self, next_level=True)
 
@@ -271,14 +343,11 @@ class GameplayView(View):
 
             for cooldown_key in self.cooldown_keys.values():
                 cooldown_key.on_key_release(event.key)
-        
+
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 self.clicked = True
                 self.clicked_pos = pygame.Vector2(event.pos)
-
-
-
 
     def draw_timer_wheel(self, time_elapsed):
         center_x = SCREEN_WIDTH // 2
@@ -286,7 +355,9 @@ class GameplayView(View):
         radius = 100
 
         start_angle = 360
-        end_angle = 360 - ((HOLD_TO_QUIT_SECONDS - time_elapsed) / HOLD_TO_QUIT_SECONDS) * 360
+        end_angle = (
+            360 - ((HOLD_TO_QUIT_SECONDS - time_elapsed) / HOLD_TO_QUIT_SECONDS) * 360
+        )
 
         # TODO: twine between colors as time elapses
         # arcade.draw_arc_filled(center_x, center_y, radius, radius, arcade.color.WHITE, end_angle, start_angle, 90)
@@ -296,10 +367,14 @@ class GameplayView(View):
         text = font.render("Hold <ESCAPE> to quit", True, arcade_color.WHITE_SMOKE)
         text_rect = text.get_rect(center=(center_x, center_y - radius))
         APP_SCREEN.blit(text, text_rect)
-        pygame.draw.arc(APP_SCREEN, Colors.RED, (center_x - radius, center_y - radius, radius * 2, radius * 2), start_angle, end_angle, 90)
-
-
-
+        pygame.draw.arc(
+            APP_SCREEN,
+            Colors.RED,
+            (center_x - radius, center_y - radius, radius * 2, radius * 2),
+            start_angle,
+            end_angle,
+            90,
+        )
 
     def handle_cooldown_keys(self, key: int = None):
         # NOTE: these can't be elif becuase this is also run in on_update() and it needs to process every one of these
@@ -314,9 +389,6 @@ class GameplayView(View):
             player().acceleration.x += PLAYER_ACCELERATION
         if self.cooldown_keys[KEY_SPACE].run(key=key):
             player().boost()
-
-
-
 
     def handle_collisions(self):
         # find all agents within the screen
@@ -336,7 +408,9 @@ class GameplayView(View):
             # distance from player to agent
             # distance = self.player.position.distance_to(agent.position)
             distance = player().position.distance_to(agent.position)
-            if distance < 150: # this doesn't always work... HMMM... fucking arbitrary... # TODO
+            if (
+                distance < 150
+            ):  # this doesn't always work... HMMM... fucking arbitrary... # TODO
                 agents_within_proximity.add(agent)
 
         # TODO print important performance metrics here
@@ -345,7 +419,9 @@ class GameplayView(View):
 
         # collisions = pygame.sprite.spritecollide(self.player, self.actor_group, False, pygame.sprite.collide_mask)
         # collisions = pygame.sprite.spritecollide(self.player, agents_within_proximity, False, pygame.sprite.collide_mask)
-        collisions = pygame.sprite.spritecollide(player(), agents_within_proximity, False, pygame.sprite.collide_mask)
+        collisions = pygame.sprite.spritecollide(
+            player(), agents_within_proximity, False, pygame.sprite.collide_mask
+        )
         for agent in collisions:
             # agent.dead = True
             if agent.type == AgentType.KRILL:
@@ -354,14 +430,14 @@ class GameplayView(View):
                 # self.stomach[AgentType.KRILL][agent.subtype] += 1
                 self.stomach[AgentType.KRILL] += 1
                 # self.player.adjust_life(13) # faster
-                player().adjust_life(13) # faster
+                player().adjust_life(13)  # faster
             elif agent.type == AgentType.FISH:
                 audio().dink()
                 self.score += 2
                 # self.stomach[AgentType.FISH][agent.subtype] += 1
                 self.stomach[AgentType.FISH] += 1
                 # self.player.adjust_life(5) # more plentiful
-                player().adjust_life(5) # more plentiful
+                player().adjust_life(5)  # more plentiful
             elif agent.type == AgentType.FRENFISH:
                 continue
             elif agent.type == AgentType.KRAKEN:
@@ -369,7 +445,7 @@ class GameplayView(View):
                 # self.stomach[AgentType.KRAKEN][agent.subtype] += 1
                 self.stomach[AgentType.KRAKEN] += 1
                 # audio().oww( self.player.name )
-                audio().oww( player().name )
+                audio().oww(player().name)
                 # self.player.adjust_life(-15)
                 player().adjust_life(-15)
 
@@ -377,6 +453,9 @@ class GameplayView(View):
             self.actor_group.remove(agent)
             del agent
 
-        if level().current_level > 0 and self.score - level().starting_score > level().winning_score: #level().LEVEL_SCORE_PROGRESSION[level().current_level] - level().LEVEL_SCORE_PROGRESSION[level().current_level - 1]:
-        # if level().current_level > 0 and self.score > level().LEVEL_SCORE_PROGRESSION[level().current_level] - level().LEVEL_SCORE_PROGRESSION[level().current_level - 1]:
+        if (
+            level().current_level > 0
+            and self.score - level().starting_score > level().winning_score
+        ):  # level().LEVEL_SCORE_PROGRESSION[level().current_level] - level().LEVEL_SCORE_PROGRESSION[level().current_level - 1]:
+            # if level().current_level > 0 and self.score > level().LEVEL_SCORE_PROGRESSION[level().current_level] - level().LEVEL_SCORE_PROGRESSION[level().current_level - 1]:
             level().set_level(self, next_level=True)

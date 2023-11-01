@@ -60,12 +60,12 @@ class Agent(pygame.sprite.Sprite, Boid):
             Boid.__init__(self,
                             mass=1,
                             position=position,
-                            max_speed=2.1,
-                            max_force=0.8,
+                            max_speed=3.5,
+                            max_force=0.96,
                             velocity=velocity,
                             decay_rate=6,
                             max_sight=250,
-                            behavior_type=BehaviorType.FLEE)
+                            behavior_type=BehaviorType.FLEE | BehaviorType.FLOCK)
 
 
         elif type == AgentType.FISH:
@@ -145,7 +145,7 @@ class Agent(pygame.sprite.Sprite, Boid):
 
 
 
-    def update(self):
+    def update(self, all_actors: pygame.sprite.Group):
         if self.dead:
             return
 
@@ -162,7 +162,7 @@ class Agent(pygame.sprite.Sprite, Boid):
             self.is_onscreen = True
 
         # super().update() # this is the Boid update() and isn't working - perhaps because there are multiple inherited classes?
-        self.update_steering()
+        self.update_steering( all_actors )
 
 
         if self.wall_behavior == BoundaryBehaviour.Bounce:

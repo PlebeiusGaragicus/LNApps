@@ -251,8 +251,11 @@ class LevelVariables:
     def testing_level_agent_generator(self):
         if self.gameplay_view.clicked:
             self.gameplay_view.clicked = False
-            x, y = self.gameplay_view.clicked_pos
-            agent = Agent(AgentType.KRILL)
-            agent.position = pygame.Vector2(x, y)
-            agent.behavior_type = BehaviorType.FLOCK
-            self.gameplay_view.actor_group.add(agent)
+
+            for i in range(4):
+                x, y = self.gameplay_view.clicked_pos + pygame.Vector2(random.randint(-100, 100), random.randint(-100, 100))
+                agent = Agent(AgentType.KRILL)
+                agent.target = player()
+                agent.position = pygame.Vector2(x, y)
+                # agent.behavior_type = BehaviorType.FLOCK
+                self.gameplay_view.actor_group.add(agent)
