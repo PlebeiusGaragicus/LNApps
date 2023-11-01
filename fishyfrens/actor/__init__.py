@@ -40,7 +40,8 @@ class BoundaryBehaviour(enum.Enum):
 
 
 # how far away from the edge of the playfield should agents be spawned
-SAFE_BUFFER = 100
+SAFE_BUFFER = 100 # TODO: move this into a SafeXY() function
 
 # how far off screen to draw agents - arbitrary number that needs a better solution overall
-VIEW_OPTO_PIXEL_DISTANCE = -150 
+VIEW_OPTO_PIXEL_DISTANCE = -150
+

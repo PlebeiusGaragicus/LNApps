@@ -14,7 +14,6 @@ from fishyfrens.view.camera import camera
 
 
 
-
 class Boid:
     def __init__(self,
                  mass: int,
@@ -31,26 +30,28 @@ class Boid:
         self.max_speed: int = max_speed
         self.max_force: int = max_force
         self.velocity: pygame.Vector2 = velocity
-        self.decay_rate: float = decay_rate
-        self.behavior_type: BehaviorType = behavior_type
 
         # This is for drawing the vectors and are not needed.  Helpful for debugging
         self.desired_velocity = NULL_VECTOR
         self.steering_force = NULL_VECTOR
 
+        self.decay_rate: float = decay_rate
+        self.behavior_type: BehaviorType = behavior_type
         self.vel_coef = 1
         # self.vel_coef = 0.999
         self.max_sight = max_sight
 
 
 
-
+###########################################
     def draw_vectors(self):
         # self.draw_vector(self.desired_velocity, color=Colors.GREEN)
         # self.draw_vector(self.steering_force, color=Colors.BLUE)
         self.draw_vector(self.velocity, color=Colors.RED)
 
 
+
+###########################################
     def draw_vector(self, vec, color: pygame.Color = Colors.RED, magnitude = 20):
         player_center = self.position + self.size // 2
         player_center += -camera().offset
@@ -58,16 +59,27 @@ class Boid:
 
 
 
+
+###########################################
     def update_steering(self):
         self.velocity *= self.vel_coef
 
-        if self.behavior_type & BehaviorType.SEEK:
-            self.steering_force = self.seek()
-            self.velocity += self.steering_force
+        if self.behavior_type is not None:
+            if self.behavior_type & BehaviorType.SEEK:
+                self.steering_force = self.seek()
+                self.velocity += self.steering_force
 
-        if self.behavior_type & BehaviorType.FLEE:
-            self.steering_force = self.flee()
-            self.velocity += self.steering_force
+            if self.behavior_type & BehaviorType.FLEE:
+                self.steering_force = self.flee()
+                self.velocity += self.steering_force
+            
+            # if self.behavior_type & BehaviorType.ARRIVE:
+            #     self.steering_force = self.arrive()
+            #     self.velocity += self.steering_force
+
+            if self.behavior_type & BehaviorType.FLOCK:
+                self.steering_force = self.flock()
+                self.velocity += self.steering_force
 
         # cap velocity
         if self.velocity.magnitude() > self.max_speed:
@@ -78,6 +90,7 @@ class Boid:
         self.position += self.velocity
 
 
+###########################################
     def seek(self) -> pygame.Vector2:
         if self.target is None:
             return pygame.Vector2(0, 0)
@@ -97,6 +110,7 @@ class Boid:
         return steering_force
 
 
+###########################################
     def flee(self) -> pygame.Vector2:
         if self.target is None:
             return pygame.Vector2(0, 0)
@@ -116,52 +130,6 @@ class Boid:
         return steering_force
 
 
-
-
-
-
-
-
-    # def seek(self) -> pygame.Vector2:
-    #     """ returns a 'steering force' """
-    #     if self.target is None:
-    #         logger.warning(f"{__class__.__name__} self.target is None")
-    #         return pygame.Vector2(0, 0)
-
-    #     self.desired_velocity = (self.target.position - self.position).normalize() * self.max_speed
-    #     distance = self.position.distance_to(self.target.position)
-    #     if distance > 0:
-    #         speed = distance / (self.distance_sensitivity)
-    #         speed = min(speed, self.max_speed)
-    #         # speed = min(0.1, speed)
-    #         self.desired_velocity *= speed / distance
-
-    #     steering_force = self.desired_velocity - self.velocity
-
-    #     # limit by max force
-    #     steering_force = steering_force.normalize() * self.max_force
-    #     return steering_force
-
-
-    # def flee(self) -> pygame.Vector2:
-    #     """ returns a 'steering force' """
-    #     # steering_force = -self.seek()
-    #     # self.desired_velocity = -self.desired_velocity
-    #     # return steering_force
-    #     if self.target is None:
-    #         logger.warning(f"{__class__.__name__} self.target is None")
-    #         return pygame.Vector2(0, 0)
-
-    #     self.desired_velocity = (self.target.position - self.position).normalize() * self.max_speed
-    #     # attenuate desired velocity - the farther the target is, the less we want to flee
-    #     distance = self.position.distance_to(self.target.position)
-    #     if distance > 0:
-    #         speed = distance / (self.distance_sensitivity)
-    #         speed = min(speed, self.max_speed)
-    #         self.desired_velocity *= speed / -distance
-
-    #     steering_force = self.desired_velocity - self.velocity
-
-    #     # limit by max force
-    #     steering_force = steering_force.normalize() * self.max_force
-    #     return steering_force
+###########################################
+    def flock(self) -> pygame.Vector2:
+        return NULL_VECTOR

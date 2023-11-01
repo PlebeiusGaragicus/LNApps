@@ -22,12 +22,16 @@ from fishyfrens import debug
 from fishyfrens.config import *
 from fishyfrens.app import App
 
-from fishyfrens.level import level, create_levels, Storyline
+# from fishyfrens.level import level, create_levels, Storyline
+from fishyfrens.level import Storyline
+from fishyfrens.actor.singletons import level, create_levels, player, create_player
+
 from fishyfrens.audio import audio
 from fishyfrens.view.camera import camera, ParallaxBackground
 
+from fishyfrens.actor import BehaviorType, NULL_VECTOR
 from fishyfrens.actor.agent import Agent, AgentType
-from fishyfrens.actor.player import player, create_player
+# from fishyfrens.actor.player import player, create_player
 
 
 # TODO: move this to a better place
@@ -71,15 +75,19 @@ class GameplayView(View):
             AgentType.KRAKEN: 0,
         }
 
+        self.clicked = False
+        self.clicked_pos = None
+
 
     def setup(self):
         # NOTE: This is called when the view is switched to, so it's a good place to reset things
         # we can also use this to setup the view the first time it's run instead of in __init__()
 
         starting_level = App.get_instance().manifest_key_value('starting_level', 0) # TODO: find a way to set
-        create_levels(storyline=Storyline.FREN_RESCUE, starting_level=starting_level)
+        create_levels(self, storyline=Storyline.FREN_RESCUE, starting_level=starting_level)
         # TODO : this is a mess, fix the level class
-        level().set_level(self, set_level=starting_level)
+        # level().set_level(self, set_level=starting_level)
+        level().set_level(set_level=starting_level)
 
         audio().play_bg(1)
         self.start_time = time.time()
@@ -110,7 +118,6 @@ class GameplayView(View):
 
 
     def update(self):
-        # if self.player.life <= 0 or self.alive is False:
         if player().life <= 0 or self.alive is False:
             App.get_instance().viewmanager.run_view("results")
 
@@ -118,19 +125,15 @@ class GameplayView(View):
             return
 
 
-        # self.actor_group.update(player=self.player)
         self.actor_group.update()
 
         self.handle_cooldown_keys()
-        # self.player.update()
         player().update()
 
-        # if self.level == 1:
-        #     self.level1()
-        # elif self.level == 2:
-        #     self.level2()
-        self.level_agent_handler()
-
+        # level class now handles agent generation
+        # level().level_agent_handler( self )
+        level().level_agent_handler()
+        # self.level_agent_handler()
         # level functions must handle their own agent generation and collisions
         # self.handle_collisions()
 
@@ -213,16 +216,13 @@ class GameplayView(View):
         text(APP_SCREEN, f"Score: {self.score}", (SCREEN_WIDTH // 2, 20), font_size=40, color=arcade_color.YELLOW_ORANGE, center=True)
 
         if debug.DRAW_STATS:
-            # fps = f"FPS: {App.get_instance().fps:.0f}"
             fps = f"FPS: {App.get_instance().clock.get_fps():.0f}"
-            # speed = math.trunc(self.player.velocity.magnitude())
-            # speed = math.ceil(self.player.velocity.magnitude())
-            # round speed to nearest whole number
-            # speed = round(self.player.velocity.magnitude(), 1)
             speed = round(player().velocity.magnitude(), 1)
             text(APP_SCREEN, f"speed: {speed}", (SCREEN_WIDTH // 2, 60), font_size=20, color=arcade_color.YELLOW_ORANGE, center=True)
             text(APP_SCREEN, fps, (SCREEN_WIDTH // 2, 80), font_size=20, color=arcade_color.YELLOW_ORANGE, center=True)
             text(APP_SCREEN, f"Level: {level().current_level}", (SCREEN_WIDTH // 2, 100), font_size=20, color=arcade_color.PIGGY_PINK, center=True)
+            # TODO show as a percentage instead!!!  (Or a level progress bar!!!!!)
+            text(APP_SCREEN, f"score needed: {-(self.score - level().winning_score - level().starting_score)}", (SCREEN_WIDTH // 2, 120), font_size=20, color=arcade_color.PIGGY_PINK, center=True)
 
 
 
@@ -236,15 +236,6 @@ class GameplayView(View):
 
             if self.paused:
                 return
-
-            # speed bost! # NOTE: now a cooldown key
-            # if event.key == pygame.K_SPACE:
-            #     #TODO this makes the player jump too rapidly
-            #     # self.player.velocity += self.player.velocity * 0.001
-            #     # self.player.acceleration *= 2
-            #     self.player.boost()
-            #     logger.debug("BOOST!")
-
 
             if event.key == pygame.K_z:
                 self.spawn_seek_agent()
@@ -266,8 +257,7 @@ class GameplayView(View):
             elif event.key == pygame.K_EQUALS:
                 level().set_level(self, next_level=True)
 
-            if event.key == pygame.K_l: # kill all agents
-                # self.player.fire()
+            if event.key == pygame.K_l:
                 self.actor_group = pygame.sprite.Group()
 
             self.handle_cooldown_keys(event.key)
@@ -281,6 +271,11 @@ class GameplayView(View):
 
             for cooldown_key in self.cooldown_keys.values():
                 cooldown_key.on_key_release(event.key)
+        
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                self.clicked = True
+                self.clicked_pos = pygame.Vector2(event.pos)
 
 
 
@@ -310,57 +305,15 @@ class GameplayView(View):
         # NOTE: these can't be elif becuase this is also run in on_update() and it needs to process every one of these
 
         if self.cooldown_keys[KEY_UP].run(key=key):
-            # self.player.acceleration.y += -PLAYER_ACCELERATION
             player().acceleration.y += -PLAYER_ACCELERATION
         if self.cooldown_keys[KEY_DOWN].run(key=key):
-            # self.player.acceleration.y += PLAYER_ACCELERATION
             player().acceleration.y += PLAYER_ACCELERATION
         if self.cooldown_keys[KEY_LEFT].run(key=key):
-            # self.player.acceleration.x += -PLAYER_ACCELERATION
             player().acceleration.x += -PLAYER_ACCELERATION
         if self.cooldown_keys[KEY_RIGHT].run(key=key):
-            # self.player.acceleration.x += PLAYER_ACCELERATION
             player().acceleration.x += PLAYER_ACCELERATION
         if self.cooldown_keys[KEY_SPACE].run(key=key):
-            # self.player.boost()
             player().boost()
-
-
-
-
-    def spawn_krill(self, hide_out_of_sight: bool = False):
-        agent = Agent(AgentType.KRILL)
-        # agent.target = self.player
-        agent.target = player()
-        agent.hide_out_of_sight = hide_out_of_sight
-        self.actor_group.add(agent)
-
-
-
-    def spawn_fren(self, hide_out_of_sight: bool = False):
-        agent = Agent(AgentType.FRENFISH)
-        # agent.target = self.player
-        agent.target = player()
-        agent.hide_out_of_sight = hide_out_of_sight
-        self.actor_group.add(agent)
-
-
-
-    def spawn_fish(self, hide_out_of_sight: bool = False):
-        agent = Agent(AgentType.FISH)
-        # agent.target = self.player
-        agent.target = player()
-        agent.hide_out_of_sight = hide_out_of_sight
-        self.actor_group.add(agent)
-
-
-
-    def spawn_kraken(self, hide_out_of_sight: bool = False):
-        agent = Agent(AgentType.KRAKEN)
-        # agent.target = self.player
-        agent.target = player()
-        agent.hide_out_of_sight = hide_out_of_sight
-        self.actor_group.add(agent)
 
 
 
@@ -424,69 +377,6 @@ class GameplayView(View):
             self.actor_group.remove(agent)
             del agent
 
-        if self.score > level().LEVEL_SCORE_PROGRESSION[level().current_level]: # TODO: hard, coded... let's make a score list/dict or something
+        if level().current_level > 0 and self.score - level().starting_score > level().winning_score: #level().LEVEL_SCORE_PROGRESSION[level().current_level] - level().LEVEL_SCORE_PROGRESSION[level().current_level - 1]:
+        # if level().current_level > 0 and self.score > level().LEVEL_SCORE_PROGRESSION[level().current_level] - level().LEVEL_SCORE_PROGRESSION[level().current_level - 1]:
             level().set_level(self, next_level=True)
-            # camera().resize() # TODO: not sure if I need this...
-
-
-
-
-
-#####################################################
-    def level_agent_handler(self):
-        #####################################################
-        #################  LEVEL ONE  #######################
-        #####################################################
-        if level().current_level == 0:
-            if time.time() > level().last_krill_spawn_time + level().agent_spawn_interval:
-                level().last_krill_spawn_time = time.time()
-                self.spawn_krill()
-
-            if time.time() > level().last_fish_spawn_time + level().agent_spawn_interval * 3: # 3:1 ratio krill to fish
-                level().last_fish_spawn_time = time.time()
-                self.spawn_fish()
-        #####################################################
-        #################  LEVEL TWO  #######################
-        #####################################################
-        elif level().current_level == 1:
-            while len(self.actor_group) < level().max_agents:
-                random_number = random.uniform(0, 1)
-
-                if random_number < 0.5:
-                    self.spawn_krill( level().hide_out_of_sight )
-                else:
-                    self.spawn_fish( level().hide_out_of_sight )
-
-        #####################################################
-        #################  LEVEL THREE  #####################
-        #####################################################
-        elif level().current_level == 2:
-            while len(self.actor_group) < level().max_agents:
-                random_number = random.uniform(0, 1)
-                if random_number < 15/32:
-                    # print("This branch runs with a 7/16 probability.")
-                    self.spawn_krill( level().hide_out_of_sight )
-                elif random_number < 15/32 + 16/32:
-                    # print("This branch runs with a 8/16 (or 1/2) probability.")
-                    self.spawn_fish( level().hide_out_of_sight )
-                else:
-                    # print("This branch runs with a 1/16 probability.")
-                    self.spawn_kraken( level().hide_out_of_sight )
-
-
-
-        # TODO - all levels have the same collision handler FOR NOW
-        self.handle_collisions()
-
-
-    def safeXY(self):
-        # how far away from the edge of the playfield should agents be spawned
-        SAFE_BUFFER = 100
-
-        # return a random x,y coordinate that is not within the player's view
-        while True: # TODO: this is a bad way to do this... but it works for now
-            x = random.randint(SAFE_BUFFER, camera().playfield_width - SAFE_BUFFER)
-            y = random.randint(SAFE_BUFFER, camera().playfield_height - SAFE_BUFFER)
-            # if self.player.position.distance_to(pygame.Vector2(x, y)) > 200:
-            if player().position.distance_to(pygame.Vector2(x, y)) > 200:
-                return x, y

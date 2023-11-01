@@ -15,7 +15,9 @@ from fishyfrens.app import App
 
 from fishyfrens.view.camera import camera
 from fishyfrens.audio import audio
-from fishyfrens.level import level
+
+# from fishyfrens.level import level
+from fishyfrens.actor.singletons import level
 
 
 
@@ -217,17 +219,17 @@ class Player(pygame.sprite.Sprite):
 
 
 
-_p = None
+# _p = None
 
-def create_player(name):
-    global _p
-    if _p is not None:
-        raise Exception("Player instance already exists")
-    _p = Player(name)
-    return _p
+# def create_player(name):
+#     global _p
+#     if _p is not None:
+#         raise Exception("Player instance already exists")
+#     _p = Player(name)
+#     return _p
 
-def player():
-    # global _p # not needed as we are only accessing, not modifying it
-    if _p is None:
-        raise Exception("Player has not been created yet")
-    return _p
+# def player():
+#     # global _p # not needed as we are only accessing, not modifying it
+#     if _p is None:
+#         raise Exception("Player has not been created yet")
+#     return _p

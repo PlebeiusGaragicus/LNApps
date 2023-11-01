@@ -149,6 +149,8 @@ class ParallaxBackground:
         #     offset_y = self.offset.y * parallax_factor
         #     for particle in layer:
         #         particle.draw(self.surface)
+
+        # TODO: really need to optimize this...
         self.surface.fill((0, 0, 0, 0))  # Clear surface
         for particle in self.particles:
             particle.draw(self.surface)

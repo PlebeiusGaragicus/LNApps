@@ -13,7 +13,8 @@ from gamelib.menuaction import MenuAction
 
 from fishyfrens.app import App
 from fishyfrens.config import *
-from fishyfrens.actor.player import create_player
+# from fishyfrens.actor.player import create_player
+from fishyfrens.actor.singletons import create_player
 from fishyfrens.audio import audio
 
 

@@ -38,15 +38,15 @@ class Agent(pygame.sprite.Sprite, Boid):
     def __init__(self, type: AgentType):
         pygame.sprite.Sprite.__init__(self)
 
+        # position = safeXY() #TODO
         position = pygame.Vector2(
             random.randint(SAFE_BUFFER, camera().playfield_width - SAFE_BUFFER),
             random.randint(SAFE_BUFFER, camera().playfield_height - SAFE_BUFFER)
         )
-        # position = safeXY()
 
         velocity = pygame.Vector2(
-            random.randint(-1, 1),
-            random.randint(-1, 1)
+            random.uniform(-1.5, 1.5),
+            random.uniform(-1.5, 1.5)
         )
 
         self.type = type
@@ -138,8 +138,8 @@ class Agent(pygame.sprite.Sprite, Boid):
         self.rotated_image = self.image
         self.mask = pygame.mask.from_surface(self.image)
 
-        # self.hide_out_of_sight = False
-        self.hide_out_of_sight = True
+        self.hide_out_of_sight = False
+        # self.hide_out_of_sight = True # TODO: make this a level variable / also, will error if agent has no target...
         self.dead = False
         self.is_onscreen = None
 
@@ -164,11 +164,12 @@ class Agent(pygame.sprite.Sprite, Boid):
         # super().update() # this is the Boid update() and isn't working - perhaps because there are multiple inherited classes?
         self.update_steering()
 
-        # TODO - just use a type class...
+
         if self.wall_behavior == BoundaryBehaviour.Bounce:
             self.bounce_off_walls(attenuate=True)
         elif self.wall_behavior == BoundaryBehaviour.Wrap:
             self.wrap_screen()
+
 
         # NOTE: this is being done in draw (not sure i even need a rect...) but it also needs to be offset by the camera
         # self.rect.topleft = self.position
