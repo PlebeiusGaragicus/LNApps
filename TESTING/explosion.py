@@ -26,7 +26,7 @@ class AnimatedExplosion(arcade.Sprite):
         self.active = True  # Active when it's first created
 
         # Images from Kenney.nl's Asset Pack 3
-        main_path = "/Users/myca/arcade-apps/grub/resources/img/explode/explode"
+        main_path = "/Users/myca/LNApps/fishyfrens/resources/img/explode/explode"
 
         # Load textures for walking
         self.plosion_textures = []
