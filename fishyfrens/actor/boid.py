@@ -7,7 +7,7 @@ import numpy as np
 from gamelib.colors import Colors
 from gamelib.globals import APP_SCREEN
 
-from fishyfrens.actor import BehaviorType, NULL_VECTOR
+from fishyfrens.actor import BehaviorType
 
 from fishyfrens.view.camera import camera
 
@@ -33,8 +33,8 @@ class Boid:
         self.velocity: pygame.Vector2 = velocity
 
         # This is for drawing the vectors and are not needed.  Helpful for debugging
-        self.desired_velocity = NULL_VECTOR
-        self.steering_force = NULL_VECTOR
+        self.desired_velocity = pygame.Vector2(0, 0)
+        self.steering_force = pygame.Vector2(0, 0)
 
         self.decay_rate: float = decay_rate
         self.behavior_type: BehaviorType = behavior_type
@@ -103,7 +103,7 @@ class Boid:
         
         distance = self.position.distance_to(self.target.position)
         if distance > self.max_sight:
-            return NULL_VECTOR
+            return pygame.Vector2(0, 0)
 
         self.desired_velocity = (self.target.position - self.position).normalize() * self.max_speed
         steering_force = self.desired_velocity - self.velocity
@@ -123,7 +123,7 @@ class Boid:
         
         distance = self.position.distance_to(self.target.position)
         if distance > self.max_sight:
-            return NULL_VECTOR
+            return pygame.Vector2(0, 0)
 
         self.desired_velocity = (self.position - self.target.position).normalize() * self.max_speed
         steering_force = self.desired_velocity - self.velocity
@@ -137,21 +137,24 @@ class Boid:
 
 
     def align(self, neighbors: pygame.sprite.Group) -> pygame.Vector2:
-        print("aligning with neighbors", len(neighbors))
         average = pygame.Vector2(0, 0)
-        print("neighbors: ", len(neighbors))
         for a in neighbors:
             average += a.velocity
 
         average /= max(len(neighbors), 1)
-        return average.normalize() * self.max_force if average != NULL_VECTOR else NULL_VECTOR
+        return average.normalize() * self.max_force if average != pygame.Vector2(0, 0) else pygame.Vector2(0, 0)
 
 
     def separate(self, neighbors: pygame.sprite.Group) -> pygame.Vector2:
-        return NULL_VECTOR
+        return pygame.Vector2(0, 0)
 
     def cohere(self, neighbors: pygame.sprite.Group) -> pygame.Vector2:
-        return NULL_VECTOR
+        average = pygame.Vector2(0, 0)
+        for a in neighbors:
+            average += a.position
+
+        average /= max(len(neighbors), 1)
+        return average - self.position
 
 ###########################################
     def flock(self, all_actors: pygame.sprite.Group) -> pygame.Vector2:
@@ -161,15 +164,14 @@ class Boid:
         for a in all_actors:
             if a != self:
                 distance = self.position.distance_to(a.position)
-                # if self.position.distance_to(a.position) < self.max_sight // 3:
-                # print(distance)
                 if distance < self.max_sight // 2:
                     neighbors.add(a)
 
 
         if len(neighbors) == 0:
-            print("no neighbors")
-            return NULL_VECTOR
+            return pygame.Vector2(0, 0)
         else:
             return self.align( neighbors ) + self.separate( neighbors ) + self.cohere( neighbors )
-        # return self.align( all_actors ) + self.separate( all_actors ) + self.cohere( all_actors )
+            # return self.cohere( neighbors )
+            # return self.align( neighbors )
+            # return self.seperate( neighbors )

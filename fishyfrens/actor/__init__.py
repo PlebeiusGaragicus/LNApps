@@ -1,9 +1,5 @@
 import enum
 
-import pygame
-
-NULL_VECTOR = pygame.Vector2(0, 0)
-
 class BehaviorType:
     NONE = 0x00000000
     SEEK = 0x00000002

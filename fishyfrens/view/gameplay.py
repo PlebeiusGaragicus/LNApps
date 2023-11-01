@@ -27,12 +27,12 @@ from fishyfrens.app import App
 
 # from fishyfrens.level import level, create_levels, Storyline
 from fishyfrens.level import Storyline
-from fishyfrens.actor.singletons import level, create_levels, player, create_player
+from fishyfrens.actor.singletons import level, create_levels, player
 
 from fishyfrens.audio import audio
 from fishyfrens.view.camera import camera, ParallaxBackground
 
-from fishyfrens.actor import BehaviorType, NULL_VECTOR
+from fishyfrens.actor import BehaviorType
 from fishyfrens.actor.agent import Agent, AgentType
 
 # from fishyfrens.actor.player import player, create_player

@@ -40,8 +40,8 @@ class Agent(pygame.sprite.Sprite, Boid):
 
         # position = safeXY() #TODO
         position = pygame.Vector2(
-            random.randint(SAFE_BUFFER, camera().playfield_width - SAFE_BUFFER),
-            random.randint(SAFE_BUFFER, camera().playfield_height - SAFE_BUFFER)
+            random.randint(SAFE_BUFFER, int(camera().playfield_width - SAFE_BUFFER)),
+            random.randint(SAFE_BUFFER, int(camera().playfield_height - SAFE_BUFFER))
         )
 
         velocity = pygame.Vector2(
@@ -233,11 +233,18 @@ class Agent(pygame.sprite.Sprite, Boid):
 
 
     def wrap_screen(self):
+        # LEFT WALL
         if self.position.x < 0:
-            self.position.x = camera().playfield_width - self.size.x
+            self.position.x = camera().playfield_width - self.size.x + self.position.x
+
+        # RIGHT WALL
         if self.position.x > camera().playfield_width - self.size.x:
-            self.position.x = 0
+            self.position.x = camera().playfield_width % self.position.x
+
+        # TOP WALL
         if self.position.y < 0:
-            self.position.y = camera().playfield_height - self.size.x
-        if self.position.y > camera().playfield_height - self.size.x:
-            self.position.y = 0
+            self.position.y = camera().playfield_height - self.size.y + self.position.y
+
+        # BOTTOM WALL
+        if self.position.y > camera().playfield_height - self.size.y:
+            self.position.y = camera().playfield_height % self.position.y
