@@ -117,8 +117,8 @@ class LevelVariables:
         if self.current_level == 0:
             print("Setting playfield for level zero!")
 
-            camera().resize(SCREEN_WIDTH * 0.8,
-                            SCREEN_HEIGHT * 0.8
+            camera().resize(SCREEN_WIDTH * 1.5,
+                            SCREEN_HEIGHT * 1.5
             )
 
             self.starting_score = self.gameplay_view.score
@@ -259,6 +259,7 @@ class LevelVariables:
                 x, y = self.gameplay_view.clicked_pos + camera().offset + pygame.Vector2(random.randint(-100, 100), random.randint(-100, 100))
                 agent = Agent(AgentType.KRILL)
                 agent.target = player()
+                agent.max_sight = 200
                 agent.position = pygame.Vector2(x, y)
                 # agent.behavior_type = BehaviorType.FLOCK
                 self.gameplay_view.actor_group.add(agent)

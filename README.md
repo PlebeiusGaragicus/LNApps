@@ -1,4 +1,31 @@
-# LNApps
+https://www.pygame.org/docs/tut/newbieguide.html
+
+https://www.pygame.org/docs/ref/mask.html
+
+https://www.pygame.org/docs/ref/surface.html#pygame.Surface.get_rect
+
+GAMES: https://www.pygame.org/tags/all
+
+
+
+
+BOIDS: http://www.cs.unc.edu/%7Ehelser/239/finalproj/239_final_paper.htm
+
+>> coding train : https://www.youtube.com/watch?v=mhjuuHl6qHM&t=5s
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 > trying to run the python application
 

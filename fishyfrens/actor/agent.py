@@ -56,6 +56,7 @@ class Agent(pygame.sprite.Sprite, Boid):
             # scale_by = 4
             # self.image = pygame.transform.scale(self.image, (int(self.image.get_width() * scale_by), int(self.image.get_height() * scale_by)))
             self.image_orientation: pygame.Vector2 = pygame.Vector2(-1, 0) # facing left
+            # self.wall_behavior: BoundaryBehaviour = BoundaryBehaviour.Wrap
             self.wall_behavior: BoundaryBehaviour = BoundaryBehaviour.Wrap
             Boid.__init__(self,
                             mass=1,

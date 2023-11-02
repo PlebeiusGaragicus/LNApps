@@ -324,6 +324,10 @@ class GameplayView(View):
                 debug.DRAW_RECTS = not debug.DRAW_RECTS
             elif event.key == pygame.K_b:
                 debug.DRAW_STATS = not debug.DRAW_STATS
+            elif event.key == pygame.K_LEFTBRACKET:
+                camera().resize(camera().playfield_width - 200, camera().playfield_height - 200)
+            elif event.key == pygame.K_RIGHTBRACKET:
+                camera().resize(camera().playfield_width + 200, camera().playfield_height + 200)
             elif event.key == pygame.K_k:
                 player().life = 0  # TODO: call player.kill?
             elif event.key == pygame.K_EQUALS:

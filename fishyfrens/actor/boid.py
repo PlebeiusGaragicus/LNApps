@@ -69,27 +69,33 @@ class Boid:
     def update_steering(self, all_actors: pygame.sprite.Group):
         self.velocity *= self.vel_coef
 
-        steering = pygame.Vector2(0, 0)
+        # steering = pygame.Vector2(0, 0)
+        self.steering_force = pygame.Vector2(0, 0)
+
         if self.behavior_type & BehaviorType.SEEK:
-            steering += self.seek()
+            self.steering_force += self.seek()
 
         if self.behavior_type & BehaviorType.FLEE:
             flee_force = self.flee()
-            steering += flee_force + flee_force + flee_force + flee_force
+            # self.steering_force += flee_force + flee_force + flee_force + flee_force
+            self.steering_force += flee_force * 4
 
         if self.behavior_type & BehaviorType.FLOCK:
-            steering += self.flock( all_actors )
+            self.steering_force += self.flock( all_actors )
 
-        self.steering_force = steering
+        # self.steering_force = steering
 
-        # normalize steering force
-        if self.steering_force.magnitude() > self.max_force:
+        # LIMIT STEERING FORCE TO MAX FORCE
+        # if self.steering_force.magnitude() > self.max_force:
+        #     self.steering_force = self.steering_force.normalize() * self.max_force
+
+        if self.steering_force.magnitude() > 0:
             self.steering_force = self.steering_force.normalize() * self.max_force
 
         # steering_force /= self.mass  # Assuming mass is not zero
         self.velocity += self.steering_force
 
-        # cap velocity
+        # LIMIT VELOCITY TO MAX SPEED
         if self.velocity.magnitude() > self.max_speed:
             self.velocity = self.velocity.normalize() * self.max_speed
 
@@ -146,7 +152,17 @@ class Boid:
 
 
     def separate(self, neighbors: pygame.sprite.Group) -> pygame.Vector2:
-        return pygame.Vector2(0, 0)
+        average = pygame.Vector2(0, 0)
+        for a in neighbors:
+            diff = self.position - a.position
+            diff /= a.distance
+            average += diff
+
+        average /= max(len(neighbors), 1)
+        # return average
+        return average.normalize() * self.max_force if average != pygame.Vector2(0, 0) else pygame.Vector2(0, 0)
+
+
 
     def cohere(self, neighbors: pygame.sprite.Group) -> pygame.Vector2:
         average = pygame.Vector2(0, 0)
@@ -154,7 +170,9 @@ class Boid:
             average += a.position
 
         average /= max(len(neighbors), 1)
-        return average - self.position
+        # return average - self.position
+        return average.normalize() * self.max_force if average != pygame.Vector2(0, 0) else pygame.Vector2(0, 0)
+
 
 ###########################################
     def flock(self, all_actors: pygame.sprite.Group) -> pygame.Vector2:
@@ -164,6 +182,7 @@ class Boid:
         for a in all_actors:
             if a != self:
                 distance = self.position.distance_to(a.position)
+                a.distance = distance
                 if distance < self.max_sight // 2:
                     neighbors.add(a)
 
@@ -171,7 +190,10 @@ class Boid:
         if len(neighbors) == 0:
             return pygame.Vector2(0, 0)
         else:
-            return self.align( neighbors ) + self.separate( neighbors ) + self.cohere( neighbors )
+            return self.align( neighbors ) * 1 + \
+                    self.separate( neighbors ) * 0.5 + \
+                        self.cohere( neighbors ) * 1.3
+
             # return self.cohere( neighbors )
             # return self.align( neighbors )
             # return self.seperate( neighbors )
